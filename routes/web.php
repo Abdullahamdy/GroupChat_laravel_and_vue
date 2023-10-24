@@ -34,5 +34,6 @@ Route::post('/private-message/{user}',[MessageController::class,'sendPrivateMess
 
 Route::get('/get-groups',[GroupChatController::class,'getGroups']);
 Route::get('/conversation/{GroupId}',[GroupChatController::class,'getMessages']);
+Route::post('/create-message',[GroupChatController::class,'sendMessage']);
 Auth::routes();
 

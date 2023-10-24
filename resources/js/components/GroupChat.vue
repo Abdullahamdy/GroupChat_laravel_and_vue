@@ -58,7 +58,7 @@
 
                     </div>
 
-                    <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup">
+                    <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
 
                         <ul class="list-unstyled text-white">
                             <!-- sender -->
@@ -84,11 +84,13 @@
 
                             <li class="mb-3">
                                 <div class="form-outline form-white">
-                                    <textarea class="form-control" id="textAreaExample3" rows="4"></textarea>
+                                    <textarea class="form-control" id="textAreaExample3" v-model="message"
+                                        rows="4"></textarea>
                                     <label class="form-label" for="textAreaExample3">Message</label>
                                 </div>
                             </li>
-                            <button type="button" class="btn btn-light btn-lg btn-rounded float-end">Send</button>
+                            <button @click="sendMessage" type="button"
+                                class="btn btn-light btn-lg btn-rounded float-end">Send</button>
                         </ul>
 
                     </div>
@@ -107,6 +109,7 @@ export default {
             groups: '',
             activeGroup: null,
             groupMessages: [],
+            message: '',
         }
     },
     methods: {
@@ -124,6 +127,20 @@ export default {
             });
 
         },
+        // setGroupId(){
+        //     this.activeGroup = this.groups[0].id;
+        // },
+        sendMessage() {
+            if (!this.message) {
+                return alert('please Enter Message');
+            }
+            axios.post(`/create-message`, { 'body': this.message, 'conversation_id': this.activeGroup }).then(response => {
+                this.message = null;
+                // console.log(response);
+                // this.groupMessages.push(response.data.message)
+
+            });
+        }
 
     },
 
@@ -136,17 +153,19 @@ export default {
 
 
 
+
     created() {
-        this.fetchGroups();
-        Echo.private('PrivateGroupChat.' + this.user.id)
-            .listen('PrivateGroupSent', (e) => {
-                this.activeFriend = e.message.user_id;
-                this.allmessages.push(e.message);
-                setTimeout(this.scrollToEnd, 100);
-            })
-
-    }
-
+    this.fetchGroups();
+    this.$watch('activeGroup', (newValue) => {
+        if (newValue) {
+            console.log('active goru'+ this.activeGroup);
+            Echo.private('PrivateGroupChat.' + this.activeGroup)
+                .listen('PrivateGroupSent', (e) => {
+                    this.groupMessages.push(e.message)
+                });
+        }
+    });
+}
 }
 
 

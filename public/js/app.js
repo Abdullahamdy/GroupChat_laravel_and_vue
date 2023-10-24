@@ -5376,7 +5376,8 @@ __webpack_require__.r(__webpack_exports__);
     return {
       groups: '',
       activeGroup: null,
-      groupMessages: []
+      groupMessages: [],
+      message: ''
     };
   },
   methods: {
@@ -5391,20 +5392,41 @@ __webpack_require__.r(__webpack_exports__);
       axios.get("/conversation/".concat(this.activeGroup)).then(function (response) {
         _this2.groupMessages = response.data.groupMessages;
       });
+    },
+    // setGroupId(){
+    //     this.activeGroup = this.groups[0].id;
+    // },
+    sendMessage: function sendMessage() {
+      var _this3 = this;
+      if (!this.message) {
+        return alert('please Enter Message');
+      }
+      axios.post("/create-message", {
+        'body': this.message,
+        'conversation_id': this.activeGroup
+      }).then(function (response) {
+        _this3.message = null;
+        // console.log(response);
+        // this.groupMessages.push(response.data.message)
+      });
     }
   },
+
   watch: {
     activeGroup: function activeGroup(val) {
       this.fetchMessage();
     }
   },
   created: function created() {
-    var _this3 = this;
+    var _this4 = this;
     this.fetchGroups();
-    Echo["private"]('PrivateGroupChat.' + this.user.id).listen('PrivateGroupSent', function (e) {
-      _this3.activeFriend = e.message.user_id;
-      _this3.allmessages.push(e.message);
-      setTimeout(_this3.scrollToEnd, 100);
+    this.$watch('activeGroup', function (newValue) {
+      if (newValue) {
+        console.log('active goru' + _this4.activeGroup);
+        Echo["private"]('PrivateGroupChat.' + _this4.activeGroup).listen('PrivateGroupSent', function (e) {
+          _this4.groupMessages.push(e.message);
+        });
+      }
     });
   }
 });
@@ -5676,7 +5698,7 @@ var render = function render() {
     }, [_vm._v(_vm._s(group.name))]), _vm._v(" "), _c("p", {
       staticClass: "small text-white"
     }, [_vm._v(_vm._s(group.last_message.body))])])]), _vm._v(" "), _vm._m(0, true)])]);
-  }), 0)])])]), _vm._v(" "), _vm.activeGroup ? _c("div", {
+  }), 0)])])]), _vm._v(" "), _vm.activeGroup != null ? _c("div", {
     staticClass: "col-md-6 col-lg-7 col-xl-7"
   }, [_c("ul", {
     staticClass: "list-unstyled text-white"
@@ -5705,10 +5727,43 @@ var render = function render() {
     }, [_c("p", {
       staticClass: "mb-0"
     }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")])])])]);
-  }), _vm._v(" "), _vm._m(2), _vm._v(" "), _c("button", {
+  }), _vm._v(" "), _c("li", {
+    staticClass: "mb-3"
+  }, [_c("div", {
+    staticClass: "form-outline form-white"
+  }, [_c("textarea", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.message,
+      expression: "message"
+    }],
+    staticClass: "form-control",
+    attrs: {
+      id: "textAreaExample3",
+      rows: "4"
+    },
+    domProps: {
+      value: _vm.message
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.message = $event.target.value;
+      }
+    }
+  }), _vm._v(" "), _c("label", {
+    staticClass: "form-label",
+    attrs: {
+      "for": "textAreaExample3"
+    }
+  }, [_vm._v("Message")])])]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-light btn-lg btn-rounded float-end",
     attrs: {
       type: "button"
+    },
+    on: {
+      click: _vm.sendMessage
     }
   }, [_vm._v("Send")])], 2)]) : _vm._e()])])])]);
 };
@@ -5730,25 +5785,6 @@ var staticRenderFns = [function () {
   }, [_c("i", {
     staticClass: "far fa-clock"
   }), _vm._v(" 12 mins ago")]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("li", {
-    staticClass: "mb-3"
-  }, [_c("div", {
-    staticClass: "form-outline form-white"
-  }, [_c("textarea", {
-    staticClass: "form-control",
-    attrs: {
-      id: "textAreaExample3",
-      rows: "4"
-    }
-  }), _vm._v(" "), _c("label", {
-    staticClass: "form-label",
-    attrs: {
-      "for": "textAreaExample3"
-    }
-  }, [_vm._v("Message")])])]);
 }];
 render._withStripped = true;
 

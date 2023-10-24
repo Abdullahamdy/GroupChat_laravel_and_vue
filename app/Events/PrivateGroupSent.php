@@ -23,7 +23,7 @@ class PrivateGroupSent implements ShouldBroadcast
      */
     public function __construct(Message $message)
     {
-        $this->message = $message;
+        $this->message = $message->load('user');
     }
 
 
@@ -34,6 +34,6 @@ class PrivateGroupSent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('PrivateGroupChat.' . $this->message->Conversation->id);
+        return new PrivateChannel('PrivateGroupChat.' .$this->message->Conversation->id);
     }
 }

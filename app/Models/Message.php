@@ -18,4 +18,8 @@ class Message extends Model
     {
         return Carbon::parse($value)->diffForHumans();
     }
+    public function Conversation()
+    {
+        return $this->belongsTo(Conversation::class);
+    }
 }
