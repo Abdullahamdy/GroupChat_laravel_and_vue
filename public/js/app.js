@@ -5377,7 +5377,12 @@ __webpack_require__.r(__webpack_exports__);
       groups: '',
       activeGroup: null,
       groupMessages: [],
-      message: ''
+      message: '',
+      showDropdown: false,
+      AddGroup: {
+        GroupName: '',
+        Members: []
+      }
     };
   },
   methods: {
@@ -5411,6 +5416,31 @@ __webpack_require__.r(__webpack_exports__);
         _this3.groupMessages.push(response.data);
         _this3.message = null;
       });
+    },
+    // functionalty Groups
+    toggleDropdown: function toggleDropdown() {
+      this.showDropdown = !this.showDropdown;
+      console.log(this.showDropdown);
+    },
+    AddMember: function AddMember(memberId) {
+      var index = this.AddGroup.Members.indexOf(memberId);
+      if (index !== -1) {
+        this.AddGroup.Members.splice(index, 1);
+      } else {
+        this.AddGroup.Members.push(memberId);
+      }
+      console.log(this.AddGroup.Members);
+    },
+    AddNewGroup: function AddNewGroup() {
+      var _this4 = this;
+      axios.post("/add-new-group", {
+        'group': this.AddGroup
+      }).then(function (response) {
+        _this4.message = null;
+        _this4.groupMessages.push(response.data);
+        _this4.message = null;
+      });
+      console.log(this.AddGroup);
     }
   },
   watch: {
@@ -5420,13 +5450,13 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   created: function created() {
-    var _this4 = this;
+    var _this5 = this;
     this.fetchGroups();
     this.$watch('activeGroup', function (newValue) {
       if (newValue) {
-        Echo.leave("PrivateGroupChat.".concat(_this4.activeGroup));
-        Echo["private"]('PrivateGroupChat.' + _this4.activeGroup).listen('PrivateGroupSent', function (e) {
-          _this4.groupMessages.push(e.message);
+        Echo.leave("PrivateGroupChat.".concat(_this5.activeGroup));
+        Echo["private"]('PrivateGroupChat.' + _this5.activeGroup).listen('PrivateGroupSent', function (e) {
+          _this5.groupMessages.push(e.message);
         });
       }
     });
@@ -5697,10 +5727,129 @@ var render = function render() {
       staticClass: "pt-1"
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
-    }, [_vm._v(_vm._s(group.name))]), _vm._v(" "), _c("p", {
+    }, [_vm._v(_vm._s(group.name))]), _vm._v(" "), group.last_message ? _c("p", {
       staticClass: "small text-white"
-    }, [_vm._v(_vm._s(group.last_message.body))])])]), _vm._v(" "), _vm._m(0, true)])]);
-  }), 0)])])]), _vm._v(" "), _vm.activeGroup != null ? _c("div", {
+    }, [_vm._v(_vm._s(group.last_message.body))]) : _vm._e()])]), _vm._v(" "), _vm._m(0, true)])]);
+  }), 0)])]), _vm._v(" "), _c("div", {
+    staticClass: "col-md-6 col-lg-5 mt-4",
+    staticStyle: {
+      "flex-direction": "column"
+    }
+  }, [_c("button", {
+    staticClass: "btn btn-primary rounded-pill",
+    on: {
+      click: _vm.toggleDropdown
+    }
+  }, [_vm._v("Add Group")])]), _vm._v(" "), _vm.showDropdown ? _c("div", [_c("div", [_c("input", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.AddGroup.GroupName,
+      expression: "AddGroup.GroupName"
+    }],
+    staticClass: "mt-2",
+    staticStyle: {
+      "font-weight": "bold",
+      "border-radius": "10px",
+      height: "50px"
+    },
+    attrs: {
+      type: "text",
+      placeholder: "Group Name"
+    },
+    domProps: {
+      value: _vm.AddGroup.GroupName
+    },
+    on: {
+      input: function input($event) {
+        if ($event.target.composing) return;
+        _vm.$set(_vm.AddGroup, "GroupName", $event.target.value);
+      }
+    }
+  }), _vm._v(" "), _c("h2", {
+    staticStyle: {
+      color: "#007bff"
+    }
+  }, [_vm._v("Members")]), _vm._v(" "), _c("div", {
+    staticClass: "user-details",
+    staticStyle: {
+      display: "inline-block"
+    },
+    on: {
+      click: function click($event) {
+        return _vm.AddMember(1);
+      }
+    }
+  }, [_vm.AddGroup.Members.includes(1) ? _c("div", {
+    style: _vm.AddGroup.Members.includes(1) ? {
+      "font-weight": "bolder"
+    } : ""
+  }, [_vm._m(1)]) : _vm._e(), _vm._v(" "), _vm._m(2), _vm._v(" "), _c("p", {
+    staticStyle: {
+      color: "#0056b3",
+      "font-weight": "bolder"
+    }
+  }, [_vm._v("Abdullah")])]), _vm._v(" "), _c("div", {
+    staticClass: "user-details",
+    staticStyle: {
+      display: "inline-block"
+    },
+    on: {
+      click: function click($event) {
+        return _vm.AddMember(2);
+      }
+    }
+  }, [_vm.AddGroup.Members.includes(2) ? _c("div", {
+    style: _vm.AddGroup.Members.includes(1) ? {
+      "font-weight": "bolder"
+    } : ""
+  }, [_vm._m(3)]) : _vm._e(), _vm._v(" "), _c("img", {
+    attrs: {
+      src: "/images/Abdullah.jpg",
+      width: "50px;hight:50px",
+      alt: "User Photo"
+    }
+  }), _vm._v(" "), _c("p", {
+    staticStyle: {
+      color: "#0056b3",
+      "font-weight": "bolder"
+    }
+  }, [_vm._v("Abdullah")])]), _vm._v(" "), _c("div", {
+    staticClass: "user-details",
+    staticStyle: {
+      display: "inline-block"
+    },
+    on: {
+      click: function click($event) {
+        return _vm.AddMember(3);
+      }
+    }
+  }, [_vm.AddGroup.Members.includes(3) ? _c("div", {
+    style: _vm.AddGroup.Members.includes(1) ? {
+      "font-weight": "bolder"
+    } : ""
+  }, [_vm._m(4)]) : _vm._e(), _vm._v(" "), _c("img", {
+    attrs: {
+      src: "/images/Abdullah.jpg",
+      width: "50px;hight:50px",
+      alt: "User Photo"
+    }
+  }), _vm._v(" "), _c("p", {
+    staticStyle: {
+      color: "#0056b3",
+      "font-weight": "bolder"
+    }
+  }, [_vm._v("Abdullah")])])]), _vm._v(" "), _c("div", {
+    staticClass: "user-details",
+    staticStyle: {
+      display: "inline-block"
+    }
+  }, [_c("button", {
+    staticClass: "btn btn-primary rounded-pill",
+    on: {
+      click: _vm.AddNewGroup
+    }
+  }, [_vm._v("Add")])])]) : _vm._e()]), _vm._v(" "), _vm.activeGroup != null ? _c("div", {
     staticClass: "col-md-6 col-lg-7 col-xl-7"
   }, [_c("ul", {
     staticClass: "list-unstyled text-white"
@@ -5724,7 +5873,7 @@ var render = function render() {
       }
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
-    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(1, true)]), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(5, true)]), _vm._v(" "), _c("div", {
       staticClass: "card-body"
     }, [_c("p", {
       staticClass: "mb-0"
@@ -5779,6 +5928,47 @@ var staticRenderFns = [function () {
   }, [_vm._v("Just now")]), _vm._v(" "), _c("span", {
     staticClass: "badge bg-danger float-end"
   }, [_vm._v("1")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("h2", {
+    staticStyle: {
+      "margin-top": "10px",
+      "margin-left": "10px"
+    }
+  }, [_c("span", [_vm._v("☑")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticStyle: {
+      position: "relative"
+    }
+  }, [_c("img", {
+    attrs: {
+      src: "/images/Abdullah.jpg",
+      width: "50px;hight:50px",
+      alt: "User Photo"
+    }
+  })]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("h2", {
+    staticStyle: {
+      "margin-top": "10px",
+      "margin-left": "10px"
+    }
+  }, [_c("span", [_vm._v("☑")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("h2", {
+    staticStyle: {
+      "margin-top": "10px",
+      "margin-left": "10px"
+    }
+  }, [_c("span", [_vm._v("☑")])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -11242,7 +11432,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.active[data-v-047f85c8] {\n    color: green;\n}\n.inactive[data-v-047f85c8] {\n    color: red;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

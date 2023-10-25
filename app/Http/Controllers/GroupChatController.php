@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\PrivateGroupSent;
-use App\Models\Conversation;
 use App\Models\Message;
+use Illuminate\Support\Str;
+use App\Models\Conversation;
 use Illuminate\Http\Request;
+use App\Events\PrivateGroupSent;
 use Illuminate\Support\Facades\Auth;
 
 class GroupChatController extends Controller
@@ -37,5 +38,11 @@ class GroupChatController extends Controller
         $message->load('user');
         broadcast(new PrivateGroupSent($message))->toOthers();
         return response()->json($message);
+    }
+
+    public function AddNewGroup(Request $request)
+    {
+       $conversation =  Conversation::create(['name'=>$request->group['GroupName'],'uuid'=>Str::uuid(),'user_id'=>Auth::id()]);
+       $conversation->users()->attach($request->group['Members']);
     }
 }

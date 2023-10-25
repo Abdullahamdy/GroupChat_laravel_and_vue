@@ -3,6 +3,7 @@
         <section class="gradient-custom">
             <div class="container py-5">
 
+
                 <div class="row">
 
                     <div class="col-md-6 col-lg-5 col-xl-5 mb-4 mb-md-0">
@@ -24,7 +25,7 @@
                                                     width="60">
                                                 <div class="pt-1">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
-                                                    <p class="small text-white">{{ group.last_message.body }}</p>
+                                                    <p class="small text-white" v-if="group.last_message">{{ group.last_message.body }}</p>
                                                 </div>
                                             </div>
                                             <div class="pt-1">
@@ -33,30 +34,60 @@
                                             </div>
                                         </a>
                                     </li>
-                                    <!-- <li class="p-2 border-bottom"
-                                        style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
-                                        <a href="#!" class="d-flex justify-content-between link-light">
-                                            <div class="d-flex flex-row">
-                                                <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-1.webp"
-                                                    alt="avatar"
-                                                    class="rounded-circle d-flex align-self-center me-3 shadow-1-strong"
-                                                    width="60">
-                                                <div class="pt-1">
-                                                    <p class="fw-bold mb-0">Danny Smith</p>
-                                                    <p class="small text-white">Lorem ipsum dolor sit.</p>
-                                                </div>
-                                            </div>
-                                            <div class="pt-1">
-                                                <p class="small text-white mb-1">5 mins ago</p>
-                                            </div>
-                                        </a>
-                                    </li> -->
+
                                 </ul>
 
+                            </div>
+
+
+                        </div>
+                        <div class="col-md-6 col-lg-5 mt-4" style="flex-direction: column;">
+                            <button @click="toggleDropdown" class="btn btn-primary rounded-pill">Add Group</button>
+                        </div>
+                        <div v-if="showDropdown">
+                            <div>
+                                <input type="text" v-model="AddGroup.GroupName" class="mt-2" placeholder="Group Name"
+                                    style="font-weight:bold; border-radius: 10px;height: 50px;">
+                                <h2 style="color: #007bff;">Members</h2>
+                                <div @click="AddMember(1)" class="user-details" style="display:inline-block">
+                                    <div v-if="AddGroup.Members.includes(1)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                        <h2 style="margin-top: 10px;margin-left: 10px;">
+                                            <span>&#x2611;</span>
+                                        </h2>
+                                    </div>
+                                    <div style="position: relative;">
+                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
+                                      </div>
+                                    <p class="" style="color: #0056b3;font-weight:bolder">Abdullah</p>
+                                </div>
+                                <div @click="AddMember(2)" class="user-details" style="display:inline-block">
+                                    <div v-if="AddGroup.Members.includes(2)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                        <h2 style="margin-top: 10px;margin-left: 10px;">
+                                            <span>&#x2611;</span>
+                                        </h2>
+                                    </div>
+                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
+                                    <p class="" style="color: #0056b3; font-weight:bolder">Abdullah</p>
+                                </div>
+                                <div @click="AddMember(3)" class="user-details" style="display:inline-block">
+
+                                    <div v-if="AddGroup.Members.includes(3)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                        <h2 style="margin-top: 10px;margin-left: 10px;">
+                                            <span>&#x2611;</span>
+
+                                        </h2>
+                                    </div>
+                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
+                                    <p style="color: #0056b3; font-weight:bolder">Abdullah</p>
+                                </div>
+                            </div>
+                            <div class="user-details" style="display:inline-block">
+                                <button @click="AddNewGroup" class="btn btn-primary rounded-pill">Add</button>
                             </div>
                         </div>
 
                     </div>
+
 
                     <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
 
@@ -94,8 +125,8 @@
                         </ul>
 
                     </div>
-
                 </div>
+
 
             </div>
         </section>
@@ -110,6 +141,12 @@ export default {
             activeGroup: null,
             groupMessages: [],
             message: '',
+            showDropdown: false,
+            AddGroup: {
+                GroupName: '',
+                Members: [],
+            }
+
         }
     },
     methods: {
@@ -144,7 +181,36 @@ export default {
                 this.message = null;
 
             });
+        },
+
+
+        // functionalty Groups
+
+        toggleDropdown() {
+            this.showDropdown = !this.showDropdown;
+            console.log(this.showDropdown)
+        },
+        AddMember(memberId) {
+
+            let index = this.AddGroup.Members.indexOf(memberId);
+            if (index !== -1) {
+                this.AddGroup.Members.splice(index, 1);
+            } else {
+                this.AddGroup.Members.push(memberId)
+            }
+            console.log(this.AddGroup.Members)
+
+        },
+        AddNewGroup(){
+            axios.post(`/add-new-group`, {  'group': this.AddGroup }).then(response => {
+                this.message = null;
+                this.groupMessages.push(response.data)
+                this.message = null;
+
+            });
+            console.log(this.AddGroup)
         }
+
 
     },
 
@@ -210,5 +276,24 @@ export default {
     border: 2px solid rgba(255, 255, 255, 0.05);
     background-clip: padding-box;
     box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);
+}
+
+.user-details {
+    display: flex;
+    align-items: center;
+}
+
+.user-details img {
+    margin-right: 10px;
+    width: 50px;
+    height: 50px;
+}
+
+.active {
+    color: green;
+}
+
+.inactive {
+    color: red;
 }
 </style>
