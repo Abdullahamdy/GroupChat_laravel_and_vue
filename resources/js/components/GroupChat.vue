@@ -14,7 +14,7 @@
 
                                 <ul class="list-unstyled mb-0">
                                     <li class="p-2 border-bottom" v-for="group in groups" :key="group.id"
-                                        @click="activeGroup = group.id"
+                                        @click="activeGroupfun(group.id)"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
                                         <a href="#!" class="d-flex justify-content-between link-light">
                                             <div class="d-flex flex-row">
@@ -62,8 +62,8 @@
 
                         <ul class="list-unstyled text-white">
                             <!-- sender -->
-                            <li class="d-flex justify-content-between mb-4" v-for="message in groupMessages"
-                                :key="message.id">
+                            <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
+                                :key="index">
                                 <img v-if="user.id != message.user_id"
                                     src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
                                     class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
@@ -123,21 +123,25 @@ export default {
         fetchMessage() {
             axios.get(`/conversation/${this.activeGroup}`).then(response => {
                 this.groupMessages = response.data.groupMessages;
-
             });
 
         },
-        // setGroupId(){
-        //     this.activeGroup = this.groups[0].id;
-        // },
+        activeGroupfun(groupId) {
+            Echo.leave(`PrivateGroupChat.${this.activeGroup}`);
+            this.activeGroup = groupId
+        },
+
         sendMessage() {
+
+            const conversationId = this.activeGroup;
             if (!this.message) {
                 return alert('please Enter Message');
             }
-            axios.post(`/create-message`, { 'body': this.message, 'conversation_id': this.activeGroup }).then(response => {
+            axios.post(`/create-message`, { 'body': this.message, 'conversation_id': conversationId }).then(response => {
                 this.message = null;
-                // console.log(response);
-                // this.groupMessages.push(response.data.message)
+                this.groupMessages.push(response.data)
+
+                this.message = null;
 
             });
         }
@@ -146,6 +150,7 @@ export default {
 
     watch: {
         activeGroup(val) {
+            console.log(val)
             this.fetchMessage();
         }
 
@@ -153,19 +158,18 @@ export default {
 
 
 
-
     created() {
-    this.fetchGroups();
-    this.$watch('activeGroup', (newValue) => {
-        if (newValue) {
-            console.log('active goru'+ this.activeGroup);
-            Echo.private('PrivateGroupChat.' + this.activeGroup)
-                .listen('PrivateGroupSent', (e) => {
-                    this.groupMessages.push(e.message)
-                });
-        }
-    });
-}
+        this.fetchGroups();
+        this.$watch('activeGroup', (newValue) => {
+            if (newValue) {
+                Echo.leave(`PrivateGroupChat.${this.activeGroup}`);
+                Echo.private('PrivateGroupChat.' + this.activeGroup)
+                    .listen('PrivateGroupSent', (e) => {
+                        this.groupMessages.push(e.message);
+                    })
+            }
+        });
+    }
 }
 
 

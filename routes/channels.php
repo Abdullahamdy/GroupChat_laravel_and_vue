@@ -25,9 +25,16 @@ Broadcast::channel('lchat', function ($user) {
 Broadcast::channel('PrivateChat.{receiverid}', function ($user,$receiverid) {
     return auth()->check() ;
 });
-Broadcast::channel('PrivateGroupChat.{activeGroup}', function ($user,$activeGroup) {
-    return auth()->check() ;
-});
+// Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user,$conversationId) {
+//     return auth()->check() ;
+// });
+Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user, $conversationId) {
+    // Check if the user is authenticated
+    if (!$user) {
+        return false;
+    }
+
+    return $user->conversations()->where('conversations.id', $conversationId);});
 Broadcast::channel('plchat', function ($user) {
     if(auth()->check()){
         return $user;

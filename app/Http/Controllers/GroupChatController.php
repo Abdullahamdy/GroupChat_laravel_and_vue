@@ -34,6 +34,7 @@ class GroupChatController extends Controller
         $data['user_id'] = Auth::id();
         $conversation = Conversation::find($request->conversation_id);
         $message = $conversation->messages()->create($data);
+        $message->load('user');
         broadcast(new PrivateGroupSent($message))->toOthers();
         return response()->json($message);
     }

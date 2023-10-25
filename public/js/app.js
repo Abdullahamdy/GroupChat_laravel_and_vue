@@ -5393,27 +5393,29 @@ __webpack_require__.r(__webpack_exports__);
         _this2.groupMessages = response.data.groupMessages;
       });
     },
-    // setGroupId(){
-    //     this.activeGroup = this.groups[0].id;
-    // },
+    activeGroupfun: function activeGroupfun(groupId) {
+      Echo.leave("PrivateGroupChat.".concat(this.activeGroup));
+      this.activeGroup = groupId;
+    },
     sendMessage: function sendMessage() {
       var _this3 = this;
+      var conversationId = this.activeGroup;
       if (!this.message) {
         return alert('please Enter Message');
       }
       axios.post("/create-message", {
         'body': this.message,
-        'conversation_id': this.activeGroup
+        'conversation_id': conversationId
       }).then(function (response) {
         _this3.message = null;
-        // console.log(response);
-        // this.groupMessages.push(response.data.message)
+        _this3.groupMessages.push(response.data);
+        _this3.message = null;
       });
     }
   },
-
   watch: {
     activeGroup: function activeGroup(val) {
+      console.log(val);
       this.fetchMessage();
     }
   },
@@ -5422,7 +5424,7 @@ __webpack_require__.r(__webpack_exports__);
     this.fetchGroups();
     this.$watch('activeGroup', function (newValue) {
       if (newValue) {
-        console.log('active goru' + _this4.activeGroup);
+        Echo.leave("PrivateGroupChat.".concat(_this4.activeGroup));
         Echo["private"]('PrivateGroupChat.' + _this4.activeGroup).listen('PrivateGroupSent', function (e) {
           _this4.groupMessages.push(e.message);
         });
@@ -5674,7 +5676,7 @@ var render = function render() {
       },
       on: {
         click: function click($event) {
-          _vm.activeGroup = group.id;
+          return _vm.activeGroupfun(group.id);
         }
       }
     }, [_c("a", {
@@ -5702,9 +5704,9 @@ var render = function render() {
     staticClass: "col-md-6 col-lg-7 col-xl-7"
   }, [_c("ul", {
     staticClass: "list-unstyled text-white"
-  }, [_vm._l(_vm.groupMessages, function (message) {
+  }, [_vm._l(_vm.groupMessages, function (message, index) {
     return _c("li", {
-      key: message.id,
+      key: index,
       staticClass: "d-flex justify-content-between mb-4"
     }, [_vm.user.id != message.user_id ? _c("img", {
       staticClass: "rounded-circle d-flex align-self-start me-3 shadow-1-strong",
