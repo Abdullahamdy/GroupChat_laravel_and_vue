@@ -33,7 +33,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/get-groups',[GroupChatController::class,'getGroups']);
     Route::get('/conversation/{GroupId}',[GroupChatController::class,'getMessages']);
     Route::post('/create-message',[GroupChatController::class,'sendMessage']);
-    Route::post('add-new-group',[GroupChatController::class,'AddNewGroup']);
+    Route::post('/add-new-group',[GroupChatController::class,'AddNewGroup']);
+    Route::post('/delete-group',[GroupChatController::class,'deleteGroup']);
+
+    Route::get('/getUnreadNotifications', [GroupChatController::class,'getUnreadNotifications']);
 });
 
 Auth::routes();

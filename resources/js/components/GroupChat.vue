@@ -3,10 +3,48 @@
         <section class="gradient-custom">
             <div class="container py-5">
 
+                <div class="dropdown">
+                    <button class="dropbtn">
+                        <i class="fa fa-bell"></i>
+                        <span class="badge badge-danger">{{ notification.length }}</span>
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+                    <div class="dropdown-content">
+                        <div class="media p-2">
+                            <img class="mr-2" style="height: 60px;width: 60px;"
+                                src="https://www.kindpng.com/picc/m/495-4952535_create-digital-profile-icon-blue-user-profile-icon.png"
+                                alt="commenter image">
+                            <div class="media-body">
+                                <div class="mt-0"><strong>owner noti</strong> added a comment on your post
+                                </div>
+                                <p class="m-0"><i class="fa fa-clock-o mr-1"></i> 324 </p>
+
+                            </div>
+                        </div>
+                        <div class="media p-2">
+                            <img class="mr-2" style="height: 60px;width: 60px;"
+                                src="https://www.kindpng.com/picc/m/495-4952535_create-digital-profile-icon-blue-user-profile-icon.png"
+                                alt="commenter image">
+                            <div class="media-body">
+                                <div class="mt-0"><strong>owner noti</strong> added a comment on your post
+                                </div>
+                                <p class="m-0"><i class="fa fa-clock-o mr-1"></i> 324 </p>
+
+                            </div>
+                        </div>
+                        <div>
+                            <a href="/admin/notifications" class="see-all"><i class="fa fa-bell-o mr-2"></i>See All </a>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
 
                 <div class="row">
-
                     <div class="col-md-6 col-lg-5 col-xl-5 mb-4 mb-md-0">
+
 
                         <h5 class="font-weight-bold mb-3 text-center text-white">Groups</h5>
 
@@ -25,14 +63,25 @@
                                                     width="60">
                                                 <div class="pt-1">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
-                                                    <p class="small text-white" v-if="group.last_message">{{ group.last_message.body }}</p>
+                                                    <p class="small text-white" v-if="group.last_message">{{
+                                                        group.last_message.body }}</p>
                                                 </div>
                                             </div>
                                             <div class="pt-1">
                                                 <p class="small text-white mb-1">Just now</p>
                                                 <span class="badge bg-danger float-end">1</span>
+
                                             </div>
                                         </a>
+                                        <span @click="deleteGroup(group)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                <path
+                                                    d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                                <path
+                                                    d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                            </svg>
+                                        </span>
                                     </li>
 
                                 </ul>
@@ -50,18 +99,20 @@
                                     style="font-weight:bold; border-radius: 10px;height: 50px;">
                                 <h2 style="color: #007bff;">Members</h2>
                                 <div @click="AddMember(1)" class="user-details" style="display:inline-block">
-                                    <div v-if="AddGroup.Members.includes(1)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                    <div v-if="AddGroup.Members.includes(1)"
+                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
                                         </h2>
                                     </div>
                                     <div style="position: relative;">
-                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
-                                      </div>
+                                        <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
+                                    </div>
                                     <p class="" style="color: #0056b3;font-weight:bolder">Abdullah</p>
                                 </div>
                                 <div @click="AddMember(2)" class="user-details" style="display:inline-block">
-                                    <div v-if="AddGroup.Members.includes(2)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                    <div v-if="AddGroup.Members.includes(2)"
+                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
                                         </h2>
@@ -71,7 +122,8 @@
                                 </div>
                                 <div @click="AddMember(3)" class="user-details" style="display:inline-block">
 
-                                    <div v-if="AddGroup.Members.includes(3)" :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                    <div v-if="AddGroup.Members.includes(3)"
+                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
 
@@ -102,7 +154,9 @@
                                     <div class="card-header d-flex justify-content-between p-3"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3);">
                                         <p class="fw-bold mb-0">{{ message.user.name }}</p>
-                                        <p class="text-light small mb-0"><i class="far fa-clock"></i> 12 mins ago</p>
+                                        <p class="text-light small mb-0">
+                                            <i class="far fa-clock"></i> 12 mins ago
+                                        </p>
                                     </div>
                                     <div class="card-body">
                                         <p class="mb-0">
@@ -137,7 +191,7 @@ export default {
     props: ['user'],
     data() {
         return {
-            groups: '',
+            groups: [],
             activeGroup: null,
             groupMessages: [],
             message: '',
@@ -145,9 +199,14 @@ export default {
             AddGroup: {
                 GroupName: '',
                 Members: [],
-            }
+            },
+            notification: [],
 
         }
+    },
+    mounted() {
+        this.getUnreadNotifications();
+
     },
     methods: {
         fetchGroups() {
@@ -201,16 +260,46 @@ export default {
             console.log(this.AddGroup.Members)
 
         },
-        AddNewGroup(){
-            axios.post(`/add-new-group`, {  'group': this.AddGroup }).then(response => {
-                this.message = null;
-                this.groupMessages.push(response.data)
-                this.message = null;
+        AddNewGroup() {
+            axios.post(`/add-new-group`, { 'group': this.AddGroup }).then(response => {
+                console.log(response)
+                this.groups.push(response.data.groups);
+                this.AddGroup.Members = [];
+                this.AddGroup.GroupName = '';
+                this.showDropdown = false
+                this.$fire({
+                    title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
+                });
+
 
             });
-            console.log(this.AddGroup)
-        }
+        },
+        deleteGroup(group) {
+            let index = this.groups.indexOf(group);
+            if (index !== -1) {
+                axios.post(`/delete-group`, { 'groupId': group.id }).then(response => {
+                    this.groups.splice(index, 1);
+                    this.activeGroup = null;
+                    this.$fire({
+                        title: `${response.data.groupName}`, text: "has been deleted Successfully", type: "error", timer: 2000
+                    });
+                });
+            }
 
+        },
+
+        //Notifications methods
+
+        getUnreadNotifications() {
+            axios.get('/getUnreadNotifications')
+                .then(res => {
+                    this.notification = res.data
+
+                }).catch(err => {
+                    console.log(err)
+                })
+
+        },
 
     },
 
@@ -221,8 +310,6 @@ export default {
         }
 
     },
-
-
 
     created() {
         this.fetchGroups();
@@ -235,6 +322,12 @@ export default {
                     })
             }
         });
+        console.log(this.user.id)
+        Echo.private('App.Models.User.' + this.user.id)
+            .notification((notification) => {
+                this.notification.unshift(notification)
+                console.log('notif', notification);
+            });
     }
 }
 
@@ -289,11 +382,70 @@ export default {
     height: 50px;
 }
 
-.active {
-    color: green;
+
+.dropdown .dropbtn {
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: -255px;
 }
 
-.inactive {
-    color: red;
+.navbar a:hover,
+.dropdown:hover .dropbtn {
+    background-color: #686e73;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 24px;
+    left: -188px;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    min-width: 200px;
+    max-height: 400px;
+    overflow: auto;
+    width: 300px
+}
+
+.dropdown-content .media-body>div {
+    font-size: 15px;
+    line-height: 1.3;
+}
+
+.dropdown-content .media-body a {
+    float: right;
+    color: #1580dc;
+    background: none;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.see-all {
+    color: #000;
+    background: #e4dede;
+    text-decoration: none;
+    text-align: center !important;
+    display: block;
+    padding: 4px;
+}
+
+.dropdown-content p {
+    font-size: 14px;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
 }
 </style>

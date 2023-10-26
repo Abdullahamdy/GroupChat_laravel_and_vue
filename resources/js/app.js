@@ -1,7 +1,8 @@
 require('./bootstrap');
 
 window.Vue = require('vue').default;
-
+import VueSimpleAlert from "vue-simple-alert";
+Vue.use(VueSimpleAlert);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('group-chat', require('./components/GroupChat.vue').default);
 Vue.component('private-chat', require('./components/PrivateChat.vue').default);

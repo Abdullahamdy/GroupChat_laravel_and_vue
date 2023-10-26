@@ -13,17 +13,17 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-// Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-//     return (int) $user->id === (int) $id;
-// });
-Broadcast::channel('lchat',function(){
+Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
+    return (int) $user->id === (int) $id;
+});
+Broadcast::channel('lchat', function () {
     return auth()->check();
 });
 Broadcast::channel('lchat', function ($user) {
     return auth()->check();
 });
-Broadcast::channel('PrivateChat.{receiverid}', function ($user,$receiverid) {
-    return auth()->check() ;
+Broadcast::channel('PrivateChat.{receiverid}', function ($user, $receiverid) {
+    return auth()->check();
 });
 // Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user,$conversationId) {
 //     return auth()->check() ;
@@ -33,10 +33,18 @@ Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user, $conver
     if (!$user) {
         return false;
     }
+    return $user->conversations()->where('conversations.id', $conversationId);
+});
 
-    return $user->conversations()->where('conversations.id', $conversationId);});
+
+
+Broadcast::channel('AddNewGroup.{members}', function ($user, $members) {
+    return true;
+});
+
+
 Broadcast::channel('plchat', function ($user) {
-    if(auth()->check()){
+    if (auth()->check()) {
         return $user;
     }
 });
