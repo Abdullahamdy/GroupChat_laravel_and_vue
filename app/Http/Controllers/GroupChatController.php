@@ -45,17 +45,17 @@ class GroupChatController extends Controller
 
     public function AddNewGroup(Request $request)
     {
-        $conversation =  Conversation::create(['name'=>$request->group['GroupName'],'uuid'=>Str::uuid(),'user_id'=>Auth::id()]);
+        $conversation =  Conversation::create(['name' => $request->group['GroupName'], 'uuid' => Str::uuid(), 'user_id' => Auth::id()]);
         $conversation->users()->attach($request->group['Members']);
         $conversation = $conversation->load('lastMessage');
-        broadcast(new AddNewGroup($conversation))->toOthers();
-        if($conversation->id !=Auth::id()){
-            foreach($conversation->users as $user){
+        $conversationOwner = $conversation->user_id;
+        foreach ($conversation->users as $user) {
+            if ($conversationOwner != $user->id) {
                 $user->notify(new NotifyMembers($conversation));
             }
         }
+        broadcast(new AddNewGroup($conversation))->toOthers();
         return response()->json(['groups' => $conversation]);
-
     }
     public function deleteGroup(Request $request)
     {
@@ -63,14 +63,14 @@ class GroupChatController extends Controller
         $conversationName = $Conversation->name;
         $Conversation->delete();
         return response()->json(['groupName' => $conversationName]);
-
-
     }
-
+    public function pushgroup($conversation)
+    {
+        broadcast(new AddNewGroup($conversation));
+    }
     public function getUnreadNotifications()
     {
         $notifications  = Auth::user()->unreadNotifications;
         return response()->json($notifications);
-
     }
 }

@@ -23,7 +23,7 @@ class NotifyMembers extends Notification implements ShouldBroadcast
      */
     public function __construct(Conversation $conversation)
     {
-        $this->conversation_owner = $conversation->user->id;
+        $this->conversation_owner = $conversation->user->name;
         $this->conversation_name = $conversation->name;
 
     }

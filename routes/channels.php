@@ -38,9 +38,9 @@ Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user, $conver
 
 
 
-Broadcast::channel('AddNewGroup.{members}', function ($user, $members) {
+Broadcast::channel('AddNewGroup', function ($user, $group) {
     return true;
-});
+  });
 
 
 Broadcast::channel('plchat', function ($user) {

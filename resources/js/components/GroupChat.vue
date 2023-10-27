@@ -10,23 +10,14 @@
                         <i class="fa fa-caret-down"></i>
                     </button>
                     <div class="dropdown-content">
-                        <div class="media p-2">
-                            <img class="mr-2" style="height: 60px;width: 60px;"
-                                src="https://www.kindpng.com/picc/m/495-4952535_create-digital-profile-icon-blue-user-profile-icon.png"
-                                alt="commenter image">
-                            <div class="media-body">
-                                <div class="mt-0"><strong>owner noti</strong> added a comment on your post
-                                </div>
-                                <p class="m-0"><i class="fa fa-clock-o mr-1"></i> 324 </p>
 
-                            </div>
-                        </div>
-                        <div class="media p-2">
+                        <div class="media p-2" v-for="(n, i) in notification" :key="i">
                             <img class="mr-2" style="height: 60px;width: 60px;"
                                 src="https://www.kindpng.com/picc/m/495-4952535_create-digital-profile-icon-blue-user-profile-icon.png"
                                 alt="commenter image">
                             <div class="media-body">
-                                <div class="mt-0"><strong>owner noti</strong> added a comment on your post
+                                <div class="mt-0"><strong>Your friend {{ n.data.conversation_owner }}</strong> added you to
+                                    a new group called {{ n.data.conversation_name }}
                                 </div>
                                 <p class="m-0"><i class="fa fa-clock-o mr-1"></i> 324 </p>
 
@@ -112,7 +103,7 @@
                                 </div>
                                 <div @click="AddMember(2)" class="user-details" style="display:inline-block">
                                     <div v-if="AddGroup.Members.includes(2)"
-                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                        :style="(AddGroup.Members.includes(2)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
                                         </h2>
@@ -123,10 +114,9 @@
                                 <div @click="AddMember(3)" class="user-details" style="display:inline-block">
 
                                     <div v-if="AddGroup.Members.includes(3)"
-                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                        :style="(AddGroup.Members.includes(3)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
-
                                         </h2>
                                     </div>
                                     <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
@@ -165,17 +155,17 @@
                                     </div>
                                 </div>
                             </li>
-
-
-                            <li class="mb-3">
-                                <div class="form-outline form-white">
-                                    <textarea class="form-control" id="textAreaExample3" v-model="message"
-                                        rows="4"></textarea>
-                                    <label class="form-label" for="textAreaExample3">Message</label>
-                                </div>
-                            </li>
-                            <button @click="sendMessage" type="button"
-                                class="btn btn-light btn-lg btn-rounded float-end">Send</button>
+                            <div v-if="activeGroup">
+                                <li class="mb-3">
+                                    <div class="form-outline form-white">
+                                        <textarea class="form-control" id="textAreaExample3" v-model="message"
+                                            rows="4"></textarea>
+                                        <label class="form-label" for="textAreaExample3">Message</label>
+                                    </div>
+                                </li>
+                                <button @click="sendMessage" type="button"
+                                    class="btn btn-light btn-lg btn-rounded float-end">Send</button>
+                            </div>
                         </ul>
 
                     </div>
@@ -192,7 +182,7 @@ export default {
     data() {
         return {
             groups: [],
-            activeGroup: null,
+            activeGroup: '',
             groupMessages: [],
             message: '',
             showDropdown: false,
@@ -200,6 +190,7 @@ export default {
                 GroupName: '',
                 Members: [],
             },
+            newgroupId: '',
             notification: [],
 
         }
@@ -264,12 +255,14 @@ export default {
             axios.post(`/add-new-group`, { 'group': this.AddGroup }).then(response => {
                 console.log(response)
                 this.groups.push(response.data.groups);
+                this.newgroupId = response.data.groups.id;
+
                 this.AddGroup.Members = [];
                 this.AddGroup.GroupName = '';
-                this.showDropdown = false
-                this.$fire({
-                    title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
-                });
+                this.showDropdown = false,
+                    this.$fire({
+                        title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
+                    });
 
 
             });
@@ -305,13 +298,23 @@ export default {
 
     watch: {
         activeGroup(val) {
-            console.log(val)
             this.fetchMessage();
+        },
+        newgroupId(val) {
+
         }
 
     },
 
     created() {
+        Echo.channel('AddNewGroup')
+            .listen('AddNewGroup', (e) => {
+                console.log(e.available_users);
+                console.log(this.user.id);
+                if(e.available_users.includes(this.user.id))
+                this.groups.push(e.converstion)
+            });
+
         this.fetchGroups();
         this.$watch('activeGroup', (newValue) => {
             if (newValue) {
@@ -322,12 +325,14 @@ export default {
                     })
             }
         });
-        console.log(this.user.id)
         Echo.private('App.Models.User.' + this.user.id)
             .notification((notification) => {
                 this.notification.unshift(notification)
                 console.log('notif', notification);
             });
+
+
+
     }
 }
 

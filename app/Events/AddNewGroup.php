@@ -2,18 +2,19 @@
 
 namespace App\Events;
 
+use App\Models\Conversation;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class AddNewGroup implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $converstionId;
+    public $converstion;
     /**
      * Create a new event instance.
      *
@@ -21,7 +22,17 @@ class AddNewGroup implements ShouldBroadcast
      */
     public function __construct($converstion)
     {
-        $this->converstionId = $converstion->id;
+        $this->converstion = $converstion;
+    }
+
+    public function broadcastWith()
+    {
+
+        $userIds = $this->converstion->users->pluck('id')->toArray();
+        return [
+            'available_users' => $userIds,
+            'converstion'=>$this->converstion
+        ];
     }
 
     /**
@@ -31,6 +42,6 @@ class AddNewGroup implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('channel-name');
+        return new Channel('AddNewGroup');
     }
 }
