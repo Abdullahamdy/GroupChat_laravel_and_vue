@@ -44,6 +44,7 @@
 
                                 <ul class="list-unstyled mb-0">
                                     <li class="p-2 border-bottom" v-for="group in groups" :key="group.id"
+                                    :id="group.id"
                                         @click="activeGroupfun(group.id)"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
                                         <a href="#!" class="d-flex justify-content-between link-light">
@@ -52,14 +53,15 @@
                                                     alt="avatar"
                                                     class="rounded-circle d-flex align-self-center me-3 shadow-1-strong"
                                                     width="60">
-                                                <div class="pt-1">
+                                                <div class="pt-1"  :id="group.id">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
-                                                    <p class="small text-white" v-if="group.last_message">{{
-                                                        group.last_message.body }}</p>
+                                                    <p ref="myLastMessage" :id="group.id" class="small text-white"
+                                                        v-if="group.last_message">{{
+                                                            group.last_message.body }}</p>
                                                 </div>
                                             </div>
                                             <div class="pt-1">
-                                                <p class="small text-white mb-1">Just now</p>
+                                                <p ref="myLastMessage" :id="'just_now'+group.id"  class="small text-white mb-1">Just now</p>
                                                 <span class="badge bg-danger float-end">1</span>
 
                                             </div>
@@ -203,6 +205,8 @@ export default {
         fetchGroups() {
             axios.get('/get-groups').then(response => {
                 this.groups = response.data.groups;
+                console.log(1)
+                console.log(this.groups)
 
             });
 
@@ -311,8 +315,8 @@ export default {
             .listen('AddNewGroup', (e) => {
                 console.log(e.available_users);
                 console.log(this.user.id);
-                if(e.available_users.includes(this.user.id))
-                this.groups.push(e.converstion)
+                if (e.available_users.includes(this.user.id))
+                    this.groups.push(e.converstion)
             });
 
         this.fetchGroups();
@@ -325,6 +329,23 @@ export default {
                     })
             }
         });
+        Echo.channel('pushtosidebar')
+            .listen('PushToSideBar', (e) => {
+
+                // let groupactive = this.activeGroup;
+                const LI_Element = document.querySelector(`li[id="${e.conversation.id}"]`);
+                const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
+                const justNow = document.querySelector(`p[id="just_now${e.conversation.id}"]`);
+                if (paragraphElement) {
+                    paragraphElement.style.setProperty('color', 'black', 'important');
+                    justNow.style.setProperty('color', 'black', 'important');
+                    LI_Element.style.backgroundColor = "white";
+                    LI_Element.style.fontSize = "30px";
+                    LI_Element.style.borderRadius = "40px";
+                    paragraphElement.innerText = `${e.message}`;
+                }
+
+            });
         Echo.private('App.Models.User.' + this.user.id)
             .notification((notification) => {
                 this.notification.unshift(notification)

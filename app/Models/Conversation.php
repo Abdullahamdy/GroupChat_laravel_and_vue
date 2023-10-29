@@ -46,4 +46,8 @@ class Conversation extends Model
     {
         return $this->hasOne(Message::class)->latest();
     }
+
+    public function getReadAttribute(){
+        // dd(453);
+    }
 }

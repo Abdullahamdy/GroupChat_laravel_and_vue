@@ -5395,6 +5395,8 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
       axios.get('/get-groups').then(function (response) {
         _this.groups = response.data.groups;
+        console.log(1);
+        console.log(_this.groups);
       });
     },
     fetchMessage: function fetchMessage() {
@@ -5502,6 +5504,20 @@ __webpack_require__.r(__webpack_exports__);
         Echo["private"]('PrivateGroupChat.' + _this7.activeGroup).listen('PrivateGroupSent', function (e) {
           _this7.groupMessages.push(e.message);
         });
+      }
+    });
+    Echo.channel('pushtosidebar').listen('PushToSideBar', function (e) {
+      // let groupactive = this.activeGroup;
+      var LI_Element = document.querySelector("li[id=\"".concat(e.conversation.id, "\"]"));
+      var paragraphElement = document.querySelector("p[id=\"".concat(e.conversation.id, "\"]"));
+      var justNow = document.querySelector("p[id=\"just_now".concat(e.conversation.id, "\"]"));
+      if (paragraphElement) {
+        paragraphElement.style.setProperty('color', 'black', 'important');
+        justNow.style.setProperty('color', 'black', 'important');
+        LI_Element.style.backgroundColor = "white";
+        LI_Element.style.fontSize = "30px";
+        LI_Element.style.borderRadius = "40px";
+        paragraphElement.innerText = "".concat(e.message);
       }
     });
     Echo["private"]('App.Models.User.' + this.user.id).notification(function (notification) {
@@ -5783,6 +5799,9 @@ var render = function render() {
       staticStyle: {
         "border-bottom": "1px solid rgba(255,255,255,.3) !important"
       },
+      attrs: {
+        id: group.id
+      },
       on: {
         click: function click($event) {
           return _vm.activeGroupfun(group.id);
@@ -5803,12 +5822,31 @@ var render = function render() {
         width: "60"
       }
     }), _vm._v(" "), _c("div", {
-      staticClass: "pt-1"
+      staticClass: "pt-1",
+      attrs: {
+        id: group.id
+      }
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
     }, [_vm._v(_vm._s(group.name))]), _vm._v(" "), group.last_message ? _c("p", {
-      staticClass: "small text-white"
-    }, [_vm._v(_vm._s(group.last_message.body))]) : _vm._e()])]), _vm._v(" "), _vm._m(2, true)]), _vm._v(" "), _c("span", {
+      ref: "myLastMessage",
+      refInFor: true,
+      staticClass: "small text-white",
+      attrs: {
+        id: group.id
+      }
+    }, [_vm._v(_vm._s(group.last_message.body))]) : _vm._e()])]), _vm._v(" "), _c("div", {
+      staticClass: "pt-1"
+    }, [_c("p", {
+      ref: "myLastMessage",
+      refInFor: true,
+      staticClass: "small text-white mb-1",
+      attrs: {
+        id: "just_now" + group.id
+      }
+    }, [_vm._v("Just now")]), _vm._v(" "), _c("span", {
+      staticClass: "badge bg-danger float-end"
+    }, [_vm._v("1")])])]), _vm._v(" "), _c("span", {
       on: {
         click: function click($event) {
           return _vm.deleteGroup(group);
@@ -5886,7 +5924,7 @@ var render = function render() {
     style: _vm.AddGroup.Members.includes(1) ? {
       "font-weight": "bolder"
     } : ""
-  }, [_vm._m(3)]) : _vm._e(), _vm._v(" "), _vm._m(4), _vm._v(" "), _c("p", {
+  }, [_vm._m(2)]) : _vm._e(), _vm._v(" "), _vm._m(3), _vm._v(" "), _c("p", {
     staticStyle: {
       color: "#0056b3",
       "font-weight": "bolder"
@@ -5905,7 +5943,7 @@ var render = function render() {
     style: _vm.AddGroup.Members.includes(2) ? {
       "font-weight": "bolder"
     } : ""
-  }, [_vm._m(5)]) : _vm._e(), _vm._v(" "), _c("img", {
+  }, [_vm._m(4)]) : _vm._e(), _vm._v(" "), _c("img", {
     attrs: {
       src: "/images/Abdullah.jpg",
       width: "50px;hight:50px",
@@ -5930,7 +5968,7 @@ var render = function render() {
     style: _vm.AddGroup.Members.includes(3) ? {
       "font-weight": "bolder"
     } : ""
-  }, [_vm._m(6)]) : _vm._e(), _vm._v(" "), _c("img", {
+  }, [_vm._m(5)]) : _vm._e(), _vm._v(" "), _c("img", {
     attrs: {
       src: "/images/Abdullah.jpg",
       width: "50px;hight:50px",
@@ -5975,7 +6013,7 @@ var render = function render() {
       }
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
-    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(7, true)]), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(6, true)]), _vm._v(" "), _c("div", {
       staticClass: "card-body"
     }, [_c("p", {
       staticClass: "mb-0"
@@ -6039,16 +6077,6 @@ var staticRenderFns = [function () {
   }, [_c("i", {
     staticClass: "fa fa-bell-o mr-2"
   }), _vm._v("See All ")])]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("div", {
-    staticClass: "pt-1"
-  }, [_c("p", {
-    staticClass: "small text-white mb-1"
-  }, [_vm._v("Just now")]), _vm._v(" "), _c("span", {
-    staticClass: "badge bg-danger float-end"
-  }, [_vm._v("1")])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;

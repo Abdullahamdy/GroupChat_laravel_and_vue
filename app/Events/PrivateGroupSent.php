@@ -11,6 +11,7 @@ use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Support\Facades\Auth;
 
 class PrivateGroupSent implements ShouldBroadcast
 {
@@ -18,6 +19,7 @@ class PrivateGroupSent implements ShouldBroadcast
 
     public $message;
     public $conversationId;
+    public $isRead;
     /**
      * Create a new event instance.
      *
@@ -27,6 +29,7 @@ class PrivateGroupSent implements ShouldBroadcast
     {
         $this->message = $message->load('user');
         $this->conversationId = $message->Conversation->id;
+       
     }
 
 

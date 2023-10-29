@@ -22,6 +22,9 @@ Broadcast::channel('lchat', function () {
 Broadcast::channel('lchat', function ($user) {
     return auth()->check();
 });
+Broadcast::channel('pushtosidebar', function ($user) {
+    return auth()->check();
+});
 Broadcast::channel('PrivateChat.{receiverid}', function ($user, $receiverid) {
     return auth()->check();
 });

@@ -50,4 +50,9 @@ class User extends Authenticatable
     public function conversations(){
         return $this->belongsToMany(Conversation::class)->withPivot('read_at');
     }
+
+    public function hasRead(Conversation $conversation)
+    {
+        return $this->conversations()->find($conversation->id)->pivot->read_at;
+    }
 }

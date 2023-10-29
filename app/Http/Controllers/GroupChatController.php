@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
 use App\Events\PrivateGroupSent;
+use App\Events\PushToSideBar;
 use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Ui\Presets\React;
@@ -21,10 +22,13 @@ class GroupChatController extends Controller
 
     public function getGroups(Request $request)
     {
-        $groups  = $request->user()->conversations->load('lastMessage');
+        $groups  = $request->user()->conversations()->with('lastMessage')->get();
+        $groups->each(function ($group) use ($request) {
+            $group->hasRead = $request->user()->hasRead($group);
+        });
         return response()->json(['groups' => $groups]);
     }
-
+    
     public function getMessages($GroupId)
     {
         $groupMessages =  Message::with(['user'])->where('conversation_id', $GroupId)->get();
@@ -40,6 +44,7 @@ class GroupChatController extends Controller
         $message = $conversation->messages()->create($data);
         $message->load('user');
         broadcast(new PrivateGroupSent($message))->toOthers();
+        broadcast(new PushToSideBar($message))->toOthers();
         return response()->json($message);
     }
 
