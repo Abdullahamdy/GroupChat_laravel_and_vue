@@ -43,25 +43,30 @@
                             <div class="card-body">
 
                                 <ul class="list-unstyled mb-0">
-                                    <li class="p-2 border-bottom" v-for="group in groups" :key="group.id"
-                                    :id="group.id"
+                                    <li class="p-2 border-bottom"  v-for="group in groups" :key="group.id" :id="group.id"
+                                          :class="{ sendMes: group.hasRead == null }"
                                         @click="activeGroupfun(group.id)"
-                                        style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
+                                        style="border-bottom: 1px solid rgba(255,255,255,.3) !important;"
+                                        >
                                         <a href="#!" class="d-flex justify-content-between link-light">
                                             <div class="d-flex flex-row">
                                                 <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp"
                                                     alt="avatar"
                                                     class="rounded-circle d-flex align-self-center me-3 shadow-1-strong"
                                                     width="60">
-                                                <div class="pt-1"  :id="group.id">
+                                                <div class="pt-1" :id="group.id">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
-                                                    <p ref="myLastMessage" :id="group.id" class="small text-white"
+                                                    <p ref="myLastMessage" :id="group.id"
+                                                        class="small  text-white"
+                                                        :class="{ lastMessage: group.hasRead == null }"
                                                         v-if="group.last_message">{{
                                                             group.last_message.body }}</p>
                                                 </div>
                                             </div>
                                             <div class="pt-1">
-                                                <p ref="myLastMessage" :id="'just_now'+group.id"  class="small text-white mb-1">Just now</p>
+                                                <p ref="myLastMessage" :id="'just_now' + group.id"
+                                                    class="small text-white mb-1"
+                                                    :class="{ just_now: group.hasRead == null }">Just now</p>
                                                 <span class="badge bg-danger float-end">1</span>
 
                                             </div>
@@ -205,7 +210,6 @@ export default {
         fetchGroups() {
             axios.get('/get-groups').then(response => {
                 this.groups = response.data.groups;
-                console.log(1)
                 console.log(this.groups)
 
             });
@@ -473,5 +477,21 @@ export default {
 
 .dropdown:hover .dropdown-content {
     display: block;
+}
+
+.sendMes {
+    border-radius: 40px;
+    background-color: white;
+    font-size: 30px;
+}
+
+.just_now {
+    color: black !important;
+    font-size: 30px;
+}
+
+.lastMessage {
+    color: black !important;
+    border-radius: "40px";
 }
 </style>
