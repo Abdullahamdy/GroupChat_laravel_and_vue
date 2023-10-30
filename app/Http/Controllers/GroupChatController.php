@@ -79,7 +79,7 @@ class GroupChatController extends Controller
     }
     public function getUnreadNotifications()
     {
-        $notifications  = Auth::user()->unreadNotifications;
+        $notifications = Auth::user()->unreadNotifications()->paginate(3);
         return response()->json($notifications);
     }
 }

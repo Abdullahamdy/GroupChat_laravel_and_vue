@@ -9,7 +9,8 @@
                         <span class="badge badge-danger">{{ notification.length }}</span>
                         <i class="fa fa-caret-down"></i>
                     </button>
-                    <div class="dropdown-content">
+                    <div class="dropdown-content notification-container" style="overflow-y:scroll; max-height: 100px;"
+                        @scroll="handleScroll" ref="notificationContainer">
 
                         <div class="media p-2" v-for="(n, i) in notification" :key="i">
                             <img class="mr-2" style="height: 60px;width: 60px;"
@@ -153,7 +154,7 @@
                         </div>
                         <div class="menu-item">
                             <div class="memebergroups" style="text-align: center;color:#0056b3">
-                            <h6>Members</h6>
+                                <h6>Members</h6>
                             </div>
                             <div class="menu-item-content">
                                 <div class="menu-item-text">Hamdy</div>
@@ -168,50 +169,51 @@
                     </div>
 
 
-                <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
+                    <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
 
-                    <ul class="list-unstyled text-white">
-                        <!-- sender -->
-                        <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
-                            :key="index">
-                            <img v-if="user.id != message.user_id"
-                                src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-                            <div class="card mask-custom">
-                                <div class="card-header d-flex justify-content-between p-3"
-                                    style="border-bottom: 1px solid rgba(255,255,255,.3);">
-                                    <p class="fw-bold mb-0">{{ message.user.name }}</p>
-                                    <p class="text-light small mb-0">
-                                        <i class="far fa-clock"></i> 12 mins ago
-                                    </p>
-                                </div>
-                                <div class="card-body">
-                                    <p class="mb-0">
-                                        {{ message.body }}
-                                    </p>
-                                </div>
-                            </div>
-                        </li>
-                        <div v-if="activeGroup">
-                            <li class="mb-3">
-                                <div class="form-outline form-white">
-                                    <textarea class="form-control" id="textAreaExample3" v-model="message"
-                                        rows="4"></textarea>
-                                    <label class="form-label" for="textAreaExample3">Message</label>
+                        <ul class="list-unstyled text-white">
+                            <!-- sender -->
+                            <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
+                                :key="index">
+                                <img v-if="user.id != message.user_id"
+                                    src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
+                                    class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
+                                <div class="card mask-custom">
+                                    <div class="card-header d-flex justify-content-between p-3"
+                                        style="border-bottom: 1px solid rgba(255,255,255,.3);">
+                                        <p class="fw-bold mb-0">{{ message.user.name }}</p>
+                                        <p class="text-light small mb-0">
+                                            <i class="far fa-clock"></i> 12 mins ago
+                                        </p>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">
+                                            {{ message.body }}
+                                        </p>
+                                    </div>
                                 </div>
                             </li>
-                            <button @click="sendMessage" type="button"
-                                class="btn btn-light btn-lg btn-rounded float-end">Send</button>
-                        </div>
-                    </ul>
+                            <div v-if="activeGroup">
+                                <li class="mb-3">
+                                    <div class="form-outline form-white">
+                                        <textarea class="form-control" id="textAreaExample3" v-model="message"
+                                            rows="4"></textarea>
+                                        <label class="form-label" for="textAreaExample3">Message</label>
+                                    </div>
+                                </li>
+                                <button @click="sendMessage" type="button"
+                                    class="btn btn-light btn-lg btn-rounded float-end">Send</button>
+                            </div>
+                        </ul>
 
+                    </div>
                 </div>
+
+
             </div>
-
-
+        </section>
     </div>
-    </section>
-</div></template>
+</template>
 <script>
 export default {
     props: ['user'],
@@ -228,6 +230,10 @@ export default {
             },
             newgroupId: '',
             notification: [],
+            currentPage: 1,
+            lastPage: 1,
+            isFetchingData: false,
+            isAllDataFetched: false,
             showMenu: false,
             menuX: 0,
             menuY: 0
@@ -237,6 +243,7 @@ export default {
     },
     mounted() {
         this.getUnreadNotifications();
+
 
     },
     methods: {
@@ -263,7 +270,6 @@ export default {
                 const paragraphElement = document.querySelector(`p[id="${searchgroup.id}"]`);
                 const justNow = document.querySelector(`p[id="just_now${searchgroup.id}"]`);
                 if (searchgroup) {
-                    console.log(LI_Element)
                     paragraphElement.classList.remove('lastMessage');
                     justNow.classList.remove('just_now');
                     LI_Element.classList.remove('sendMes');
@@ -299,7 +305,6 @@ export default {
 
         toggleDropdown() {
             this.showDropdown = !this.showDropdown;
-            console.log(this.showDropdown)
         },
         AddMember(memberId) {
 
@@ -309,12 +314,10 @@ export default {
             } else {
                 this.AddGroup.Members.push(memberId)
             }
-            console.log(this.AddGroup.Members)
 
         },
         AddNewGroup() {
             axios.post(`/add-new-group`, { 'group': this.AddGroup }).then(response => {
-                console.log(response)
                 this.groups.push(response.data.groups);
                 this.newgroupId = response.data.groups.id;
 
@@ -345,15 +348,48 @@ export default {
         //Notifications methods
 
         getUnreadNotifications() {
-            axios.get('/getUnreadNotifications')
-                .then(res => {
-                    this.notification = res.data
-
-                }).catch(err => {
-                    console.log(err)
-                })
-
+            console.log(543);
+    if (this.currentPage > this.lastPage  || this.isAllDataFetched) {
+      console.log(4)
+        return;
+    }
+    this.isFetchingData = true;
+    axios
+      .get('/getUnreadNotifications', {
+        params: {
+          page: this.currentPage,
         },
+      })
+      .then((response) => {
+        const newNotifications = response.data.data;
+        const existingNotifications = this.notification.map((item) => item.id);
+        const filteredNotifications = newNotifications.filter((item) => !existingNotifications.includes(item.id));
+        this.notification = [...this.notification, ...filteredNotifications];
+        this.currentPage = response.data.current_page;
+        this.lastPage = response.data.last_page;
+        this.isFetchingData = false;
+        if (this.currentPage > this.lastPage) {
+          this.isAllDataFetched = true;
+        }
+      })
+      .catch((error) => {
+        console.log('Error fetching data:', error);
+        this.isFetchingData = false;
+      });
+  },
+  handleScroll() {
+    const container = this.$refs.notificationContainer;
+    const scrollHeight = container.scrollHeight;
+    const scrollTop = container.scrollTop;
+    const clientHeight = container.clientHeight;
+
+    // Check if the scroll position is near the bottom of the container
+    if (scrollHeight - scrollTop - clientHeight < 10) {
+        console.log(3424243)
+      this.getUnreadNotifications();
+      this.currentPage++
+    }
+  },
 
     },
 
@@ -370,8 +406,6 @@ export default {
     created() {
         Echo.channel('AddNewGroup')
             .listen('AddNewGroup', (e) => {
-                console.log(e.available_users);
-                console.log(this.user.id);
                 if (e.available_users.includes(this.user.id))
                     this.groups.push(e.converstion)
             });
@@ -388,7 +422,6 @@ export default {
         });
         Echo.channel('pushtosidebar')
             .listen('PushToSideBar', (e) => {
-                console.log(e)
                 // let groupactive = this.activeGroup;
                 const LI_Element = document.querySelector(`li[id="${e.conversation.id}"]`);
                 const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
@@ -406,6 +439,7 @@ export default {
             });
         Echo.private('App.Models.User.' + this.user.id)
             .notification((notification) => {
+
                 this.notification.unshift(notification)
                 console.log('notif', notification);
             });
@@ -571,5 +605,4 @@ export default {
 .menu-item-text {
     margin-right: 10px;
 }
-
 </style>

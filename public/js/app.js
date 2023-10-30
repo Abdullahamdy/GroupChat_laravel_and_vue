@@ -5370,6 +5370,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: ['user'],
   data: function data() {
@@ -5385,6 +5391,10 @@ __webpack_require__.r(__webpack_exports__);
       },
       newgroupId: '',
       notification: [],
+      currentPage: 1,
+      lastPage: 1,
+      isFetchingData: false,
+      isAllDataFetched: false,
       showMenu: false,
       menuX: 0,
       menuY: 0
@@ -5418,7 +5428,6 @@ __webpack_require__.r(__webpack_exports__);
         var paragraphElement = document.querySelector("p[id=\"".concat(searchgroup.id, "\"]"));
         var justNow = document.querySelector("p[id=\"just_now".concat(searchgroup.id, "\"]"));
         if (searchgroup) {
-          console.log(LI_Element);
           paragraphElement.classList.remove('lastMessage');
           justNow.classList.remove('just_now');
           LI_Element.classList.remove('sendMes');
@@ -5449,7 +5458,6 @@ __webpack_require__.r(__webpack_exports__);
     // functionalty Groups
     toggleDropdown: function toggleDropdown() {
       this.showDropdown = !this.showDropdown;
-      console.log(this.showDropdown);
     },
     AddMember: function AddMember(memberId) {
       var index = this.AddGroup.Members.indexOf(memberId);
@@ -5458,14 +5466,12 @@ __webpack_require__.r(__webpack_exports__);
       } else {
         this.AddGroup.Members.push(memberId);
       }
-      console.log(this.AddGroup.Members);
     },
     AddNewGroup: function AddNewGroup() {
       var _this4 = this;
       axios.post("/add-new-group", {
         'group': this.AddGroup
       }).then(function (response) {
-        console.log(response);
         _this4.groups.push(response.data.groups);
         _this4.newgroupId = response.data.groups.id;
         _this4.AddGroup.Members = [];
@@ -5499,11 +5505,48 @@ __webpack_require__.r(__webpack_exports__);
     //Notifications methods
     getUnreadNotifications: function getUnreadNotifications() {
       var _this6 = this;
-      axios.get('/getUnreadNotifications').then(function (res) {
-        _this6.notification = res.data;
-      })["catch"](function (err) {
-        console.log(err);
+      console.log(543);
+      if (this.currentPage > this.lastPage || this.isAllDataFetched) {
+        console.log(4);
+        return;
+      }
+      this.isFetchingData = true;
+      axios.get('/getUnreadNotifications', {
+        params: {
+          page: this.currentPage
+        }
+      }).then(function (response) {
+        var newNotifications = response.data.data;
+        var existingNotifications = _this6.notification.map(function (item) {
+          return item.id;
+        });
+        var filteredNotifications = newNotifications.filter(function (item) {
+          return !existingNotifications.includes(item.id);
+        });
+        _this6.notification = [].concat(_toConsumableArray(_this6.notification), _toConsumableArray(filteredNotifications));
+        _this6.currentPage = response.data.current_page;
+        _this6.lastPage = response.data.last_page;
+        _this6.isFetchingData = false;
+        if (_this6.currentPage > _this6.lastPage) {
+          _this6.isAllDataFetched = true;
+        }
+      })["catch"](function (error) {
+        console.log('Error fetching data:', error);
+        _this6.isFetchingData = false;
       });
+    },
+    handleScroll: function handleScroll() {
+      var container = this.$refs.notificationContainer;
+      var scrollHeight = container.scrollHeight;
+      var scrollTop = container.scrollTop;
+      var clientHeight = container.clientHeight;
+
+      // Check if the scroll position is near the bottom of the container
+      if (scrollHeight - scrollTop - clientHeight < 10) {
+        console.log(3424243);
+        this.getUnreadNotifications();
+        this.currentPage++;
+      }
     }
   },
   watch: {
@@ -5515,8 +5558,6 @@ __webpack_require__.r(__webpack_exports__);
   created: function created() {
     var _this7 = this;
     Echo.channel('AddNewGroup').listen('AddNewGroup', function (e) {
-      console.log(e.available_users);
-      console.log(_this7.user.id);
       if (e.available_users.includes(_this7.user.id)) _this7.groups.push(e.converstion);
     });
     this.fetchGroups();
@@ -5529,7 +5570,6 @@ __webpack_require__.r(__webpack_exports__);
       }
     });
     Echo.channel('pushtosidebar').listen('PushToSideBar', function (e) {
-      console.log(e);
       // let groupactive = this.activeGroup;
       var LI_Element = document.querySelector("li[id=\"".concat(e.conversation.id, "\"]"));
       var paragraphElement = document.querySelector("p[id=\"".concat(e.conversation.id, "\"]"));
@@ -5784,7 +5824,15 @@ var render = function render() {
   }, [_vm._v(_vm._s(_vm.notification.length))]), _vm._v(" "), _c("i", {
     staticClass: "fa fa-caret-down"
   })]), _vm._v(" "), _c("div", {
-    staticClass: "dropdown-content"
+    ref: "notificationContainer",
+    staticClass: "dropdown-content notification-container",
+    staticStyle: {
+      "overflow-y": "scroll",
+      "max-height": "100px"
+    },
+    on: {
+      scroll: _vm.handleScroll
+    }
   }, [_vm._l(_vm.notification, function (n, i) {
     return _c("div", {
       key: i,
@@ -5803,7 +5851,7 @@ var render = function render() {
       staticClass: "media-body"
     }, [_c("div", {
       staticClass: "mt-0"
-    }, [_c("strong", [_vm._v("Your friend " + _vm._s(n.data.conversation_owner))]), _vm._v(" added you to\n                                    a new group called " + _vm._s(n.data.conversation_name) + "\n                                ")]), _vm._v(" "), _vm._m(0, true)])]);
+    }, [_c("strong", [_vm._v("Your friend " + _vm._s(n.data.conversation_owner))]), _vm._v(" added you to\n                                a new group called " + _vm._s(n.data.conversation_name) + "\n                            ")]), _vm._v(" "), _vm._m(0, true)])]);
   }), _vm._v(" "), _vm._m(1)], 2)]), _vm._v(" "), _c("div", {
     staticClass: "row"
   }, [_c("div", {
@@ -13311,7 +13359,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
