@@ -43,11 +43,10 @@
                             <div class="card-body">
 
                                 <ul class="list-unstyled mb-0">
-                                    <li class="p-2 border-bottom"  v-for="group in groups" :key="group.id" :id="group.id"
-                                          :class="{ sendMes: group.hasRead == null }"
+                                    <li class="p-2 border-bottom" v-for="group in groups" :key="group.id" :id="group.id"
+                                        @contextmenu="handleRightClick" :class="{ sendMes: group.hasRead == null }"
                                         @click="activeGroupfun(group.id)"
-                                        style="border-bottom: 1px solid rgba(255,255,255,.3) !important;"
-                                        >
+                                        style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
                                         <a href="#!" class="d-flex justify-content-between link-light">
                                             <div class="d-flex flex-row">
                                                 <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp"
@@ -56,8 +55,7 @@
                                                     width="60">
                                                 <div class="pt-1" :id="group.id">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
-                                                    <p ref="myLastMessage" :id="group.id"
-                                                        class="small  text-white"
+                                                    <p ref="myLastMessage" :id="group.id" class="small  text-white"
                                                         :class="{ lastMessage: group.hasRead == null }"
                                                         v-if="group.last_message">{{
                                                             group.last_message.body }}</p>
@@ -66,8 +64,9 @@
                                             <div class="pt-1">
                                                 <p ref="myLastMessage" :id="'just_now' + group.id"
                                                     class="small text-white mb-1"
-                                                    :class="{ just_now: group.hasRead == null }">Just now</p>
-                                                <span class="badge bg-danger float-end">1</span>
+                                                    :class="{ just_now: group.hasRead == null }"
+                                                    v-if="group.last_message_at">{{ group.last_message_at }}</p>
+                                                <!-- <span class="badge bg-danger float-end">1</span> -->
 
                                             </div>
                                         </a>
@@ -89,7 +88,9 @@
 
                         </div>
                         <div class="col-md-6 col-lg-5 mt-4" style="flex-direction: column;">
-                            <button @click="toggleDropdown" class="btn btn-primary rounded-pill">Add Group</button>
+                            <button @click="toggleDropdown" class="btn btn-primary rounded-pill"><i
+                                    class="fas fa-plus-circle"> New Group</i>
+                            </button>
                         </div>
                         <div v-if="showDropdown">
                             <div>
@@ -136,53 +137,81 @@
                         </div>
 
                     </div>
-
-
-                    <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
-
-                        <ul class="list-unstyled text-white">
-                            <!-- sender -->
-                            <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
-                                :key="index">
-                                <img v-if="user.id != message.user_id"
-                                    src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                                    class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-                                <div class="card mask-custom">
-                                    <div class="card-header d-flex justify-content-between p-3"
-                                        style="border-bottom: 1px solid rgba(255,255,255,.3);">
-                                        <p class="fw-bold mb-0">{{ message.user.name }}</p>
-                                        <p class="text-light small mb-0">
-                                            <i class="far fa-clock"></i> 12 mins ago
-                                        </p>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-0">
-                                            {{ message.body }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                            <div v-if="activeGroup">
-                                <li class="mb-3">
-                                    <div class="form-outline form-white">
-                                        <textarea class="form-control" id="textAreaExample3" v-model="message"
-                                            rows="4"></textarea>
-                                        <label class="form-label" for="textAreaExample3">Message</label>
-                                    </div>
-                                </li>
-                                <button @click="sendMessage" type="button"
-                                    class="btn btn-light btn-lg btn-rounded float-end">Send</button>
-                            </div>
-                        </ul>
+                    <div>
 
                     </div>
+                    <div class="custom-menu" v-if="showMenu" :style="{ top: `${menuY}px`, left: `${menuX}px` }">
+                        <div class="menu-item">
+                            <div class="menu-item-content">
+                                <div class="menu-item-text">Abdullah</div>
+                                <div class="menu-item-image">
+                                    <img v-if="user.id != message.user_id"
+                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
+                                        class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="30">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-item">
+                            <div class="memebergroups" style="text-align: center;color:#0056b3">
+                            <h6>Members</h6>
+                            </div>
+                            <div class="menu-item-content">
+                                <div class="menu-item-text">Hamdy</div>
+                                <div class="menu-item-image">
+                                    <img v-if="user.id != message.user_id"
+                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
+                                        class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="30">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
+
+                    <ul class="list-unstyled text-white">
+                        <!-- sender -->
+                        <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
+                            :key="index">
+                            <img v-if="user.id != message.user_id"
+                                src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
+                                class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
+                            <div class="card mask-custom">
+                                <div class="card-header d-flex justify-content-between p-3"
+                                    style="border-bottom: 1px solid rgba(255,255,255,.3);">
+                                    <p class="fw-bold mb-0">{{ message.user.name }}</p>
+                                    <p class="text-light small mb-0">
+                                        <i class="far fa-clock"></i> 12 mins ago
+                                    </p>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">
+                                        {{ message.body }}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                        <div v-if="activeGroup">
+                            <li class="mb-3">
+                                <div class="form-outline form-white">
+                                    <textarea class="form-control" id="textAreaExample3" v-model="message"
+                                        rows="4"></textarea>
+                                    <label class="form-label" for="textAreaExample3">Message</label>
+                                </div>
+                            </li>
+                            <button @click="sendMessage" type="button"
+                                class="btn btn-light btn-lg btn-rounded float-end">Send</button>
+                        </div>
+                    </ul>
+
                 </div>
-
-
             </div>
-        </section>
+
+
     </div>
-</template>
+    </section>
+</div></template>
 <script>
 export default {
     props: ['user'],
@@ -199,6 +228,10 @@ export default {
             },
             newgroupId: '',
             notification: [],
+            showMenu: false,
+            menuX: 0,
+            menuY: 0
+
 
         }
     },
@@ -207,10 +240,17 @@ export default {
 
     },
     methods: {
+        handleRightClick(event) {
+            event.preventDefault();
+            const buttonRect = event.target.getBoundingClientRect();
+            this.showMenu = !this.showMenu;
+            this.menuX = buttonRect.left;
+            this.menuY = buttonRect.bottom;
+        },
         fetchGroups() {
             axios.get('/get-groups').then(response => {
                 this.groups = response.data.groups;
-                console.log(this.groups)
+
 
             });
 
@@ -218,12 +258,25 @@ export default {
         fetchMessage() {
             axios.get(`/conversation/${this.activeGroup}`).then(response => {
                 this.groupMessages = response.data.groupMessages;
+                let searchgroup = this.groups.find(group => group.id === this.activeGroup);
+                const LI_Element = document.querySelector(`li[id="${searchgroup.id}"]`);
+                const paragraphElement = document.querySelector(`p[id="${searchgroup.id}"]`);
+                const justNow = document.querySelector(`p[id="just_now${searchgroup.id}"]`);
+                if (searchgroup) {
+                    console.log(LI_Element)
+                    paragraphElement.classList.remove('lastMessage');
+                    justNow.classList.remove('just_now');
+                    LI_Element.classList.remove('sendMes');
+                    LI_Element.style.fontSize = "16px";
+                    LI_Element.style.borderRadius = "0";
+                }
             });
 
         },
         activeGroupfun(groupId) {
             Echo.leave(`PrivateGroupChat.${this.activeGroup}`);
             this.activeGroup = groupId
+
         },
 
         sendMessage() {
@@ -335,7 +388,7 @@ export default {
         });
         Echo.channel('pushtosidebar')
             .listen('PushToSideBar', (e) => {
-
+                console.log(e)
                 // let groupactive = this.activeGroup;
                 const LI_Element = document.querySelector(`li[id="${e.conversation.id}"]`);
                 const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
@@ -347,6 +400,7 @@ export default {
                     LI_Element.style.fontSize = "30px";
                     LI_Element.style.borderRadius = "40px";
                     paragraphElement.innerText = `${e.message}`;
+                    justNow.innerText = `${e.conversation.last_message_at}`;
                 }
 
             });
@@ -494,4 +548,28 @@ export default {
     color: black !important;
     border-radius: "40px";
 }
+
+.custom-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid gray;
+    padding: 10px;
+    width: 402px;
+}
+
+.menu-item {
+    display: inline-block;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.menu-item-content {
+    display: flex;
+    align-items: center;
+}
+
+.menu-item-text {
+    margin-right: 10px;
+}
+
 </style>

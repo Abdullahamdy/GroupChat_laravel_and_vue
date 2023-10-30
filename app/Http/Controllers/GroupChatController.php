@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\AddNewGroup;
 use App\Models\Message;
+use App\Events\AddNewGroup;
 use Illuminate\Support\Str;
 use App\Models\Conversation;
 use Illuminate\Http\Request;
-use App\Events\PrivateGroupSent;
 use App\Events\PushToSideBar;
+use App\Events\PrivateGroupSent;
 use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Ui\Presets\React;
 
 class GroupChatController extends Controller
 {
@@ -28,10 +27,12 @@ class GroupChatController extends Controller
         });
         return response()->json(['groups' => $groups]);
     }
-    
+
     public function getMessages($GroupId)
     {
         $groupMessages =  Message::with(['user'])->where('conversation_id', $GroupId)->get();
+        $conversation = Conversation::find($GroupId);
+        $conversation->users()->updateExistingPivot(request()->user(), ['read_at' => now()]);
         return response()->json(['groupMessages' => $groupMessages]);
     }
 
@@ -41,7 +42,10 @@ class GroupChatController extends Controller
         $data['body'] = $request->body;
         $data['user_id'] = Auth::id();
         $conversation = Conversation::find($request->conversation_id);
+        $conversation->update(['last_message_at'=>now()]);
         $message = $conversation->messages()->create($data);
+        $conversation->users()->where('user_id', '!=', request()->user()->id)->update(['read_at' => null]);
+
         $message->load('user');
         broadcast(new PrivateGroupSent($message))->toOthers();
         broadcast(new PushToSideBar($message))->toOthers();

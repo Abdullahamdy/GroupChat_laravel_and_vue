@@ -5384,24 +5384,47 @@ __webpack_require__.r(__webpack_exports__);
         Members: []
       },
       newgroupId: '',
-      notification: []
+      notification: [],
+      showMenu: false,
+      menuX: 0,
+      menuY: 0
     };
   },
   mounted: function mounted() {
     this.getUnreadNotifications();
   },
   methods: {
+    handleRightClick: function handleRightClick(event) {
+      event.preventDefault();
+      var buttonRect = event.target.getBoundingClientRect();
+      this.showMenu = !this.showMenu;
+      this.menuX = buttonRect.left;
+      this.menuY = buttonRect.bottom;
+    },
     fetchGroups: function fetchGroups() {
       var _this = this;
       axios.get('/get-groups').then(function (response) {
         _this.groups = response.data.groups;
-        console.log(_this.groups);
       });
     },
     fetchMessage: function fetchMessage() {
       var _this2 = this;
       axios.get("/conversation/".concat(this.activeGroup)).then(function (response) {
         _this2.groupMessages = response.data.groupMessages;
+        var searchgroup = _this2.groups.find(function (group) {
+          return group.id === _this2.activeGroup;
+        });
+        var LI_Element = document.querySelector("li[id=\"".concat(searchgroup.id, "\"]"));
+        var paragraphElement = document.querySelector("p[id=\"".concat(searchgroup.id, "\"]"));
+        var justNow = document.querySelector("p[id=\"just_now".concat(searchgroup.id, "\"]"));
+        if (searchgroup) {
+          console.log(LI_Element);
+          paragraphElement.classList.remove('lastMessage');
+          justNow.classList.remove('just_now');
+          LI_Element.classList.remove('sendMes');
+          LI_Element.style.fontSize = "16px";
+          LI_Element.style.borderRadius = "0";
+        }
       });
     },
     activeGroupfun: function activeGroupfun(groupId) {
@@ -5506,6 +5529,7 @@ __webpack_require__.r(__webpack_exports__);
       }
     });
     Echo.channel('pushtosidebar').listen('PushToSideBar', function (e) {
+      console.log(e);
       // let groupactive = this.activeGroup;
       var LI_Element = document.querySelector("li[id=\"".concat(e.conversation.id, "\"]"));
       var paragraphElement = document.querySelector("p[id=\"".concat(e.conversation.id, "\"]"));
@@ -5517,6 +5541,7 @@ __webpack_require__.r(__webpack_exports__);
         LI_Element.style.fontSize = "30px";
         LI_Element.style.borderRadius = "40px";
         paragraphElement.innerText = "".concat(e.message);
+        justNow.innerText = "".concat(e.conversation.last_message_at);
       }
     });
     Echo["private"]('App.Models.User.' + this.user.id).notification(function (notification) {
@@ -5778,7 +5803,7 @@ var render = function render() {
       staticClass: "media-body"
     }, [_c("div", {
       staticClass: "mt-0"
-    }, [_c("strong", [_vm._v("Your friend " + _vm._s(n.data.conversation_owner))]), _vm._v(" added you to\n                                a new group called " + _vm._s(n.data.conversation_name) + "\n                            ")]), _vm._v(" "), _vm._m(0, true)])]);
+    }, [_c("strong", [_vm._v("Your friend " + _vm._s(n.data.conversation_owner))]), _vm._v(" added you to\n                                    a new group called " + _vm._s(n.data.conversation_name) + "\n                                ")]), _vm._v(" "), _vm._m(0, true)])]);
   }), _vm._v(" "), _vm._m(1)], 2)]), _vm._v(" "), _c("div", {
     staticClass: "row"
   }, [_c("div", {
@@ -5805,6 +5830,7 @@ var render = function render() {
         id: group.id
       },
       on: {
+        contextmenu: _vm.handleRightClick,
         click: function click($event) {
           return _vm.activeGroupfun(group.id);
         }
@@ -5842,7 +5868,7 @@ var render = function render() {
       }
     }, [_vm._v(_vm._s(group.last_message.body))]) : _vm._e()])]), _vm._v(" "), _c("div", {
       staticClass: "pt-1"
-    }, [_c("p", {
+    }, [group.last_message_at ? _c("p", {
       ref: "myLastMessage",
       refInFor: true,
       staticClass: "small text-white mb-1",
@@ -5852,9 +5878,7 @@ var render = function render() {
       attrs: {
         id: "just_now" + group.id
       }
-    }, [_vm._v("Just now")]), _vm._v(" "), _c("span", {
-      staticClass: "badge bg-danger float-end"
-    }, [_vm._v("1")])])]), _vm._v(" "), _c("span", {
+    }, [_vm._v(_vm._s(group.last_message_at))]) : _vm._e()])]), _vm._v(" "), _c("span", {
       on: {
         click: function click($event) {
           return _vm.deleteGroup(group);
@@ -5888,7 +5912,9 @@ var render = function render() {
     on: {
       click: _vm.toggleDropdown
     }
-  }, [_vm._v("Add Group")])]), _vm._v(" "), _vm.showDropdown ? _c("div", [_c("div", [_c("input", {
+  }, [_c("i", {
+    staticClass: "fas fa-plus-circle"
+  }, [_vm._v(" New Group")])])]), _vm._v(" "), _vm.showDropdown ? _c("div", [_c("div", [_c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -5997,7 +6023,43 @@ var render = function render() {
     on: {
       click: _vm.AddNewGroup
     }
-  }, [_vm._v("Add")])])]) : _vm._e()]), _vm._v(" "), _vm.activeGroup != null ? _c("div", {
+  }, [_vm._v("Add")])])]) : _vm._e()]), _vm._v(" "), _c("div"), _vm._v(" "), _vm.showMenu ? _c("div", {
+    staticClass: "custom-menu",
+    style: {
+      top: "".concat(_vm.menuY, "px"),
+      left: "".concat(_vm.menuX, "px")
+    }
+  }, [_c("div", {
+    staticClass: "menu-item"
+  }, [_c("div", {
+    staticClass: "menu-item-content"
+  }, [_c("div", {
+    staticClass: "menu-item-text"
+  }, [_vm._v("Abdullah")]), _vm._v(" "), _c("div", {
+    staticClass: "menu-item-image"
+  }, [_vm.user.id != _vm.message.user_id ? _c("img", {
+    staticClass: "rounded-circle d-flex align-self-start me-3 shadow-1-strong",
+    attrs: {
+      src: "https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp",
+      alt: "avatar",
+      width: "30"
+    }
+  }) : _vm._e()])])]), _vm._v(" "), _c("div", {
+    staticClass: "menu-item"
+  }, [_vm._m(6), _vm._v(" "), _c("div", {
+    staticClass: "menu-item-content"
+  }, [_c("div", {
+    staticClass: "menu-item-text"
+  }, [_vm._v("Hamdy")]), _vm._v(" "), _c("div", {
+    staticClass: "menu-item-image"
+  }, [_vm.user.id != _vm.message.user_id ? _c("img", {
+    staticClass: "rounded-circle d-flex align-self-start me-3 shadow-1-strong",
+    attrs: {
+      src: "https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp",
+      alt: "avatar",
+      width: "30"
+    }
+  }) : _vm._e()])])])]) : _vm._e(), _vm._v(" "), _vm.activeGroup != null ? _c("div", {
     staticClass: "col-md-6 col-lg-7 col-xl-7"
   }, [_c("ul", {
     staticClass: "list-unstyled text-white"
@@ -6021,7 +6083,7 @@ var render = function render() {
       }
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
-    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(6, true)]), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(7, true)]), _vm._v(" "), _c("div", {
       staticClass: "card-body"
     }, [_c("p", {
       staticClass: "mb-0"
@@ -6126,6 +6188,16 @@ var staticRenderFns = [function () {
       "margin-left": "10px"
     }
   }, [_c("span", [_vm._v("☑")])]);
+}, function () {
+  var _vm = this,
+    _c = _vm._self._c;
+  return _c("div", {
+    staticClass: "memebergroups",
+    staticStyle: {
+      "text-align": "center",
+      color: "#0056b3"
+    }
+  }, [_c("h6", [_vm._v("Members")])]);
 }, function () {
   var _vm = this,
     _c = _vm._self._c;
@@ -13239,7 +13311,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
