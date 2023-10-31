@@ -5470,7 +5470,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         _this4.newgroupId = response.data.groups.id;
         _this4.AddGroup.Members = [];
         _this4.AddGroup.GroupName = '';
-        _this4.showDropdown = false, _this4.$fire({
+        _this4.showDropdown = false;
+        _this4.$fire({
           title: "".concat(response.data.groups.name),
           text: "has been Created Successfully",
           type: "success",
@@ -5816,10 +5817,6 @@ var render = function render() {
   })]), _vm._v(" "), _c("div", {
     ref: "notificationContainer",
     staticClass: "dropdown-content notification-container",
-    staticStyle: {
-      "overflow-y": "scroll",
-      "max-height": "100px"
-    },
     on: {
       scroll: _vm.handleScroll
     }

@@ -9,7 +9,7 @@
                         <span class="badge badge-danger">{{ notification.length }}</span>
                         <i class="fa fa-caret-down"></i>
                     </button>
-                    <div class="dropdown-content notification-container" style="overflow-y:scroll; max-height: 100px;"
+                    <div class="dropdown-content notification-container"
                         @scroll="handleScroll" ref="notificationContainer">
 
                         <div class="media p-2" v-for="(n, i) in notification" :key="i">
@@ -313,12 +313,10 @@ export default {
                 this.newgroupId = response.data.groups.id;
                 this.AddGroup.Members = [];
                 this.AddGroup.GroupName = '';
-                this.showDropdown = false,
+                this.showDropdown = false;
                     this.$fire({
                         title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
                     });
-
-
             });
         },
         deleteGroup(group) {

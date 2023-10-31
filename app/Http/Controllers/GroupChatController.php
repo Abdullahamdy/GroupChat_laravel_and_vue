@@ -9,6 +9,7 @@ use App\Models\Conversation;
 use Illuminate\Http\Request;
 use App\Events\PushToSideBar;
 use App\Events\PrivateGroupSent;
+use App\Models\User;
 use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
 
@@ -58,10 +59,9 @@ class GroupChatController extends Controller
         $conversation->users()->attach($request->group['Members']);
         $conversation = $conversation->load('lastMessage');
         $conversationOwner = $conversation->user_id;
-        foreach ($conversation->users as $user) {
-            if ($conversationOwner != $user->id) {
+        $memberIds = $conversation->users->except($conversationOwner);
+        foreach ($memberIds as $user) {
                 $user->notify(new NotifyMembers($conversation));
-            }
         }
         broadcast(new AddNewGroup($conversation))->toOthers();
         return response()->json(['groups' => $conversation]);
@@ -79,7 +79,7 @@ class GroupChatController extends Controller
     }
     public function getUnreadNotifications()
     {
-        $notifications = Auth::user()->unreadNotifications()->paginate(3);
+        $notifications = Auth::user()->unreadNotifications()->paginate(5);
         return response()->json($notifications);
     }
 }
