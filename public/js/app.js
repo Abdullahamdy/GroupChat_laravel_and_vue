@@ -5424,15 +5424,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         var searchgroup = _this2.groups.find(function (group) {
           return group.id === _this2.activeGroup;
         });
-        var LI_Element = document.querySelector("li[id=\"".concat(searchgroup.id, "\"]"));
-        var paragraphElement = document.querySelector("p[id=\"".concat(searchgroup.id, "\"]"));
-        var justNow = document.querySelector("p[id=\"just_now".concat(searchgroup.id, "\"]"));
-        if (searchgroup) {
-          paragraphElement.classList.remove('lastMessage');
-          justNow.classList.remove('just_now');
-          LI_Element.classList.remove('sendMes');
-          LI_Element.style.fontSize = "16px";
-          LI_Element.style.borderRadius = "0";
+        var cyrcleSpan = document.querySelector("span[id=\"".concat(searchgroup.id, "\"]"));
+        if (cyrcleSpan) {
+          cyrcleSpan.remove();
         }
       });
     },
@@ -5505,9 +5499,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     //Notifications methods
     getUnreadNotifications: function getUnreadNotifications() {
       var _this6 = this;
-      console.log(543);
       if (this.currentPage > this.lastPage || this.isAllDataFetched) {
-        console.log(4);
         return;
       }
       this.isFetchingData = true;
@@ -5543,7 +5535,6 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
       // Check if the scroll position is near the bottom of the container
       if (scrollHeight - scrollTop - clientHeight < 10) {
-        console.log(3424243);
         this.getUnreadNotifications();
         this.currentPage++;
       }
@@ -5570,16 +5561,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     });
     Echo.channel('pushtosidebar').listen('PushToSideBar', function (e) {
-      // let groupactive = this.activeGroup;
-      var LI_Element = document.querySelector("li[id=\"".concat(e.conversation.id, "\"]"));
+      console.log(e.conversation.id);
       var paragraphElement = document.querySelector("p[id=\"".concat(e.conversation.id, "\"]"));
       var justNow = document.querySelector("p[id=\"just_now".concat(e.conversation.id, "\"]"));
+      var spanElement = document.querySelector("span[id=\"".concat(e.conversation.id, "\"]"));
+      if (spanElement) {
+        spanElement.remove();
+      }
       if (paragraphElement) {
-        paragraphElement.style.setProperty('color', 'black', 'important');
-        justNow.style.setProperty('color', 'black', 'important');
-        LI_Element.style.backgroundColor = "white";
-        LI_Element.style.fontSize = "30px";
-        LI_Element.style.borderRadius = "40px";
+        justNow.insertAdjacentHTML('afterend', '<span class="circle-icon"  id="' + e.conversation.id + '" style="display: inline-block;width: 1rem;height: 1rem;border-radius: 50%;background-color: blue;"></span>');
         paragraphElement.innerText = "".concat(e.message);
         justNow.innerText = "".concat(e.conversation.last_message_at);
       }
@@ -5868,9 +5858,6 @@ var render = function render() {
     return _c("li", {
       key: group.id,
       staticClass: "p-2 border-bottom",
-      "class": {
-        sendMes: group.hasRead == null
-      },
       staticStyle: {
         "border-bottom": "1px solid rgba(255,255,255,.3) !important"
       },
@@ -5908,9 +5895,6 @@ var render = function render() {
       ref: "myLastMessage",
       refInFor: true,
       staticClass: "small text-white",
-      "class": {
-        lastMessage: group.hasRead == null
-      },
       attrs: {
         id: group.id
       }
@@ -5920,13 +5904,15 @@ var render = function render() {
       ref: "myLastMessage",
       refInFor: true,
       staticClass: "small text-white mb-1",
-      "class": {
-        just_now: group.hasRead == null
-      },
       attrs: {
         id: "just_now" + group.id
       }
-    }, [_vm._v(_vm._s(group.last_message_at))]) : _vm._e()])]), _vm._v(" "), _c("span", {
+    }, [_vm._v(_vm._s(group.last_message_at))]) : _vm._e(), _vm._v(" "), group.hasRead == null ? _c("span", {
+      staticClass: "circle-icon",
+      attrs: {
+        id: group.id
+      }
+    }) : _vm._e()])]), _vm._v(" "), _c("span", {
       on: {
         click: function click($event) {
           return _vm.deleteGroup(group);
@@ -13359,7 +13345,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n.circle-icon[data-v-047f85c8] {\n    display: inline-block;\n    width: 1rem;\n    height: 1rem;\n    border-radius: 50%;\n    background-color: blue;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

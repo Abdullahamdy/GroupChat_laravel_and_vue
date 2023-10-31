@@ -45,8 +45,7 @@
 
                                 <ul class="list-unstyled mb-0">
                                     <li class="p-2 border-bottom" v-for="group in groups" :key="group.id" :id="group.id"
-                                        @contextmenu="handleRightClick" :class="{ sendMes: group.hasRead == null }"
-                                        @click="activeGroupfun(group.id)"
+                                        @contextmenu="handleRightClick" @click="activeGroupfun(group.id)"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
                                         <a href="#!" class="d-flex justify-content-between link-light">
                                             <div class="d-flex flex-row">
@@ -57,18 +56,16 @@
                                                 <div class="pt-1" :id="group.id">
                                                     <p class="fw-bold mb-0">{{ group.name }}</p>
                                                     <p ref="myLastMessage" :id="group.id" class="small  text-white"
-                                                        :class="{ lastMessage: group.hasRead == null }"
                                                         v-if="group.last_message">{{
                                                             group.last_message.body }}</p>
                                                 </div>
                                             </div>
                                             <div class="pt-1">
                                                 <p ref="myLastMessage" :id="'just_now' + group.id"
-                                                    class="small text-white mb-1"
-                                                    :class="{ just_now: group.hasRead == null }"
-                                                    v-if="group.last_message_at">{{ group.last_message_at }}</p>
-                                                <!-- <span class="badge bg-danger float-end">1</span> -->
-
+                                                    class="small text-white mb-1" v-if="group.last_message_at">{{
+                                                        group.last_message_at }}</p>
+                                                <span v-if="group.hasRead == null" :id="group.id"
+                                                    class="circle-icon"></span>
                                             </div>
                                         </a>
                                         <span @click="deleteGroup(group)">
@@ -266,15 +263,9 @@ export default {
             axios.get(`/conversation/${this.activeGroup}`).then(response => {
                 this.groupMessages = response.data.groupMessages;
                 let searchgroup = this.groups.find(group => group.id === this.activeGroup);
-                const LI_Element = document.querySelector(`li[id="${searchgroup.id}"]`);
-                const paragraphElement = document.querySelector(`p[id="${searchgroup.id}"]`);
-                const justNow = document.querySelector(`p[id="just_now${searchgroup.id}"]`);
-                if (searchgroup) {
-                    paragraphElement.classList.remove('lastMessage');
-                    justNow.classList.remove('just_now');
-                    LI_Element.classList.remove('sendMes');
-                    LI_Element.style.fontSize = "16px";
-                    LI_Element.style.borderRadius = "0";
+                const cyrcleSpan = document.querySelector(`span[id="${searchgroup.id}"]`);
+                if (cyrcleSpan) {
+                    cyrcleSpan.remove();
                 }
             });
 
@@ -320,7 +311,6 @@ export default {
             axios.post(`/add-new-group`, { 'group': this.AddGroup }).then(response => {
                 this.groups.push(response.data.groups);
                 this.newgroupId = response.data.groups.id;
-
                 this.AddGroup.Members = [];
                 this.AddGroup.GroupName = '';
                 this.showDropdown = false,
@@ -348,48 +338,45 @@ export default {
         //Notifications methods
 
         getUnreadNotifications() {
-            console.log(543);
-    if (this.currentPage > this.lastPage  || this.isAllDataFetched) {
-      console.log(4)
-        return;
-    }
-    this.isFetchingData = true;
-    axios
-      .get('/getUnreadNotifications', {
-        params: {
-          page: this.currentPage,
+            if (this.currentPage > this.lastPage || this.isAllDataFetched) {
+                return;
+            }
+            this.isFetchingData = true;
+            axios
+                .get('/getUnreadNotifications', {
+                    params: {
+                        page: this.currentPage,
+                    },
+                })
+                .then((response) => {
+                    const newNotifications = response.data.data;
+                    const existingNotifications = this.notification.map((item) => item.id);
+                    const filteredNotifications = newNotifications.filter((item) => !existingNotifications.includes(item.id));
+                    this.notification = [...this.notification, ...filteredNotifications];
+                    this.currentPage = response.data.current_page;
+                    this.lastPage = response.data.last_page;
+                    this.isFetchingData = false;
+                    if (this.currentPage > this.lastPage) {
+                        this.isAllDataFetched = true;
+                    }
+                })
+                .catch((error) => {
+                    console.log('Error fetching data:', error);
+                    this.isFetchingData = false;
+                });
         },
-      })
-      .then((response) => {
-        const newNotifications = response.data.data;
-        const existingNotifications = this.notification.map((item) => item.id);
-        const filteredNotifications = newNotifications.filter((item) => !existingNotifications.includes(item.id));
-        this.notification = [...this.notification, ...filteredNotifications];
-        this.currentPage = response.data.current_page;
-        this.lastPage = response.data.last_page;
-        this.isFetchingData = false;
-        if (this.currentPage > this.lastPage) {
-          this.isAllDataFetched = true;
-        }
-      })
-      .catch((error) => {
-        console.log('Error fetching data:', error);
-        this.isFetchingData = false;
-      });
-  },
-  handleScroll() {
-    const container = this.$refs.notificationContainer;
-    const scrollHeight = container.scrollHeight;
-    const scrollTop = container.scrollTop;
-    const clientHeight = container.clientHeight;
+        handleScroll() {
+            const container = this.$refs.notificationContainer;
+            const scrollHeight = container.scrollHeight;
+            const scrollTop = container.scrollTop;
+            const clientHeight = container.clientHeight;
 
-    // Check if the scroll position is near the bottom of the container
-    if (scrollHeight - scrollTop - clientHeight < 10) {
-        console.log(3424243)
-      this.getUnreadNotifications();
-      this.currentPage++
-    }
-  },
+            // Check if the scroll position is near the bottom of the container
+            if (scrollHeight - scrollTop - clientHeight < 10) {
+                this.getUnreadNotifications();
+                this.currentPage++
+            }
+        },
 
     },
 
@@ -422,20 +409,20 @@ export default {
         });
         Echo.channel('pushtosidebar')
             .listen('PushToSideBar', (e) => {
-                // let groupactive = this.activeGroup;
-                const LI_Element = document.querySelector(`li[id="${e.conversation.id}"]`);
+                console.log(e.conversation.id)
                 const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
                 const justNow = document.querySelector(`p[id="just_now${e.conversation.id}"]`);
+                const spanElement = document.querySelector(`span[id="${e.conversation.id}"]`);
+                if(spanElement){
+                    spanElement.remove();
+                }
                 if (paragraphElement) {
-                    paragraphElement.style.setProperty('color', 'black', 'important');
-                    justNow.style.setProperty('color', 'black', 'important');
-                    LI_Element.style.backgroundColor = "white";
-                    LI_Element.style.fontSize = "30px";
-                    LI_Element.style.borderRadius = "40px";
+                    justNow.
+                    insertAdjacentHTML
+                    ('afterend', '<span class="circle-icon"  id="' + e.conversation.id + '" style="display: inline-block;width: 1rem;height: 1rem;border-radius: 50%;background-color: blue;"></span>')
                     paragraphElement.innerText = `${e.message}`;
                     justNow.innerText = `${e.conversation.last_message_at}`;
                 }
-
             });
         Echo.private('App.Models.User.' + this.user.id)
             .notification((notification) => {
@@ -604,5 +591,13 @@ export default {
 
 .menu-item-text {
     margin-right: 10px;
+}
+
+.circle-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: blue;
 }
 </style>
