@@ -33,6 +33,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/get-groups',[GroupChatController::class,'getGroups']);
     Route::get('/conversation/{GroupId}',[GroupChatController::class,'getMessages']);
     Route::post('/create-message',[GroupChatController::class,'sendMessage']);
+    Route::post('/create-local-image',[GroupChatController::class,'CreateLocalImage']);
+    Route::post('/delete-local-image',[GroupChatController::class,'deleteLocalImage']);
+
     Route::post('/add-new-group',[GroupChatController::class,'AddNewGroup']);
     Route::post('/delete-group',[GroupChatController::class,'deleteGroup']);
 

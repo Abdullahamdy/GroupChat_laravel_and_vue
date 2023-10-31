@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Message;
 use App\Events\AddNewGroup;
 use Illuminate\Support\Str;
@@ -9,9 +10,9 @@ use App\Models\Conversation;
 use Illuminate\Http\Request;
 use App\Events\PushToSideBar;
 use App\Events\PrivateGroupSent;
-use App\Models\User;
 use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class GroupChatController extends Controller
 {
@@ -41,12 +42,13 @@ class GroupChatController extends Controller
     {
         $data = [];
         $data['body'] = $request->body;
+        $date['attachment'] = $request->image;
+        $data['attachment'] = $request->image;
         $data['user_id'] = Auth::id();
         $conversation = Conversation::find($request->conversation_id);
-        $conversation->update(['last_message_at'=>now()]);
+        $conversation->update(['last_message_at' => now()]);
         $message = $conversation->messages()->create($data);
         $conversation->users()->where('user_id', '!=', request()->user()->id)->update(['read_at' => null]);
-
         $message->load('user');
         broadcast(new PrivateGroupSent($message))->toOthers();
         broadcast(new PushToSideBar($message))->toOthers();
@@ -55,13 +57,17 @@ class GroupChatController extends Controller
 
     public function AddNewGroup(Request $request)
     {
-        $conversation =  Conversation::create(['name' => $request->group['GroupName'], 'uuid' => Str::uuid(), 'user_id' => Auth::id()]);
+        $conversation =  Conversation::create([
+            'name' => $request->group['GroupName'],
+            'uuid' => Str::uuid(),
+            'user_id' => Auth::id()
+        ]);
         $conversation->users()->attach($request->group['Members']);
         $conversation = $conversation->load('lastMessage');
         $conversationOwner = $conversation->user_id;
         $memberIds = $conversation->users->except($conversationOwner);
         foreach ($memberIds as $user) {
-                $user->notify(new NotifyMembers($conversation));
+            $user->notify(new NotifyMembers($conversation));
         }
         broadcast(new AddNewGroup($conversation))->toOthers();
         return response()->json(['groups' => $conversation]);
@@ -81,5 +87,22 @@ class GroupChatController extends Controller
     {
         $notifications = Auth::user()->unreadNotifications()->paginate(5);
         return response()->json($notifications);
+    }
+
+    public function CreateLocalImage(Request $request)
+    {
+        if($request->file('image')){
+            $image = $request->file('image');
+            if ($image) {
+                $path = $image->store('public/images');
+                $url = Storage::url($path);
+                return response()->json(['url' => $url], 200);
+            }
+        }
+
+    }
+    public function deleteLocalImage(Request $request)
+    {
+        dd($request->all());
     }
 }

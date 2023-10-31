@@ -9,8 +9,7 @@
                         <span class="badge badge-danger">{{ notification.length }}</span>
                         <i class="fa fa-caret-down"></i>
                     </button>
-                    <div class="dropdown-content notification-container"
-                        @scroll="handleScroll" ref="notificationContainer">
+                    <div class="dropdown-content notification-container" @scroll="handleScroll" ref="notificationContainer">
 
                         <div class="media p-2" v-for="(n, i) in notification" :key="i">
                             <img class="mr-2" style="height: 60px;width: 60px;"
@@ -30,9 +29,6 @@
 
                     </div>
                 </div>
-
-
-
 
                 <div class="row">
                     <div class="col-md-6 col-lg-5 col-xl-5 mb-4 mb-md-0">
@@ -183,11 +179,17 @@
                                             <i class="far fa-clock"></i> 12 mins ago
                                         </p>
                                     </div>
-                                    <div class="card-body">
-                                        <p class="mb-0">
+                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''">
+                                        <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
+                                        <div class="image-container rounded" v-if="message.attachment != null"
+
+                                        style="width:200px;height: 200px;">
+                                        <img :src="message.attachment" alt="" style="width: 100%;">
                                     </div>
+                                    </div>
+
                                 </div>
                             </li>
                             <div v-if="activeGroup">
@@ -196,6 +198,17 @@
                                         <textarea class="form-control" id="textAreaExample3" v-model="message"
                                             rows="4"></textarea>
                                         <label class="form-label" for="textAreaExample3">Message</label>
+                                    </div>
+                                    <div class="form-outline form-white">
+                                        <input type="file" id="attachment-input" ref="attachmentInput"
+                                            style="display: none;" @change="handleFileSelection">
+                                        <button id="attachment-button" @click="openFilePicker">Attach File</button>
+                                        <label class="form-label" for="attachment-input">Attachment</label>
+                                    </div>
+                                    <div lass="image-container" v-if="localImageCreated != null"
+                                        style="width:100px;height: 100px;">
+                                        <img :src="localImageCreated" alt="" style="width: 100%;">
+                                        <span class="remove-icon" @click="removeImage">&#10006;</span>
                                     </div>
                                 </li>
                                 <button @click="sendMessage" type="button"
@@ -225,6 +238,9 @@ export default {
                 GroupName: '',
                 Members: [],
             },
+            attachment: '',
+            localImageCreated: null,
+            ImageName: null,
             newgroupId: '',
             notification: [],
             currentPage: 1,
@@ -244,6 +260,41 @@ export default {
 
     },
     methods: {
+        openFilePicker() {
+            this.$refs.attachmentInput.click();
+        },
+        handleFileSelection(event) {
+            // const conversationId = this.activeGroup;
+            this.attachment = ''
+            const file = event.target.files[0];
+            this.ImageName = file.name;
+            console.log('the file from is' + file)
+            const formData = new FormData();
+            formData.append('image', file);
+            axios.post(`/create-local-image`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }).then(response => {
+                this.localImageCreated = response.data.url;
+                this.attachment = response.data.url;
+                console.log(response)
+            }).catch(err => {
+                console.log(err)
+            })
+        },
+        removeImage() {
+            //HandleRemoveImage
+            const image = this.ImageName
+            axios.post(`/delete-local-image`, { 'image': image }).then(response => {
+
+            }).then(response => {
+                console.log(response)
+            }).catch(err => {
+                console.log(err)
+            })
+
+        },
         handleRightClick(event) {
             event.preventDefault();
             const buttonRect = event.target.getBoundingClientRect();
@@ -277,12 +328,25 @@ export default {
         },
 
         sendMessage() {
-
             const conversationId = this.activeGroup;
+            const attachment = this.attachment
+            console.log('the attachment from send message is' + attachment)
             if (!this.message) {
                 return alert('please Enter Message');
             }
-            axios.post(`/create-message`, { 'body': this.message, 'conversation_id': conversationId }).then(response => {
+            const formData = new FormData();
+            formData.append('image', this.attachment);
+            formData.append('body', this.message),
+                formData.append('conversation_id', conversationId)
+            axios.post(`/create-message`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+
+
+            }
+
+            ).then(response => {
                 this.message = null;
                 this.groupMessages.push(response.data)
 
@@ -314,9 +378,9 @@ export default {
                 this.AddGroup.Members = [];
                 this.AddGroup.GroupName = '';
                 this.showDropdown = false;
-                    this.$fire({
-                        title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
-                    });
+                this.$fire({
+                    title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
+                });
             });
         },
         deleteGroup(group) {
@@ -411,13 +475,13 @@ export default {
                 const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
                 const justNow = document.querySelector(`p[id="just_now${e.conversation.id}"]`);
                 const spanElement = document.querySelector(`span[id="${e.conversation.id}"]`);
-                if(spanElement){
+                if (spanElement) {
                     spanElement.remove();
                 }
                 if (paragraphElement) {
                     justNow.
-                    insertAdjacentHTML
-                    ('afterend', '<span class="circle-icon"  id="' + e.conversation.id + '" style="display: inline-block;width: 1rem;height: 1rem;border-radius: 50%;background-color: blue;"></span>')
+                        insertAdjacentHTML
+                        ('afterend', '<span class="circle-icon"  id="' + e.conversation.id + '" style="display: inline-block;width: 1rem;height: 1rem;border-radius: 50%;background-color: blue;"></span>')
                     paragraphElement.innerText = `${e.message}`;
                     justNow.innerText = `${e.conversation.last_message_at}`;
                 }

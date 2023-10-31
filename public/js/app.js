@@ -5389,6 +5389,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         GroupName: '',
         Members: []
       },
+      attachment: '',
+      localImageCreated: null,
+      ImageName: null,
       newgroupId: '',
       notification: [],
       currentPage: 1,
@@ -5404,6 +5407,41 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     this.getUnreadNotifications();
   },
   methods: {
+    openFilePicker: function openFilePicker() {
+      this.$refs.attachmentInput.click();
+    },
+    handleFileSelection: function handleFileSelection(event) {
+      var _this = this;
+      // const conversationId = this.activeGroup;
+      this.attachment = '';
+      var file = event.target.files[0];
+      this.ImageName = file.name;
+      console.log('the file from is' + file);
+      var formData = new FormData();
+      formData.append('image', file);
+      axios.post("/create-local-image", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(function (response) {
+        _this.localImageCreated = response.data.url;
+        _this.attachment = response.data.url;
+        console.log(response);
+      })["catch"](function (err) {
+        console.log(err);
+      });
+    },
+    removeImage: function removeImage() {
+      //HandleRemoveImage
+      var image = this.ImageName;
+      axios.post("/delete-local-image", {
+        'image': image
+      }).then(function (response) {}).then(function (response) {
+        console.log(response);
+      })["catch"](function (err) {
+        console.log(err);
+      });
+    },
     handleRightClick: function handleRightClick(event) {
       event.preventDefault();
       var buttonRect = event.target.getBoundingClientRect();
@@ -5412,17 +5450,17 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.menuY = buttonRect.bottom;
     },
     fetchGroups: function fetchGroups() {
-      var _this = this;
+      var _this2 = this;
       axios.get('/get-groups').then(function (response) {
-        _this.groups = response.data.groups;
+        _this2.groups = response.data.groups;
       });
     },
     fetchMessage: function fetchMessage() {
-      var _this2 = this;
+      var _this3 = this;
       axios.get("/conversation/".concat(this.activeGroup)).then(function (response) {
-        _this2.groupMessages = response.data.groupMessages;
-        var searchgroup = _this2.groups.find(function (group) {
-          return group.id === _this2.activeGroup;
+        _this3.groupMessages = response.data.groupMessages;
+        var searchgroup = _this3.groups.find(function (group) {
+          return group.id === _this3.activeGroup;
         });
         var cyrcleSpan = document.querySelector("span[id=\"".concat(searchgroup.id, "\"]"));
         if (cyrcleSpan) {
@@ -5435,18 +5473,24 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.activeGroup = groupId;
     },
     sendMessage: function sendMessage() {
-      var _this3 = this;
+      var _this4 = this;
       var conversationId = this.activeGroup;
+      var attachment = this.attachment;
+      console.log('the attachment from send message is' + attachment);
       if (!this.message) {
         return alert('please Enter Message');
       }
-      axios.post("/create-message", {
-        'body': this.message,
-        'conversation_id': conversationId
+      var formData = new FormData();
+      formData.append('image', this.attachment);
+      formData.append('body', this.message), formData.append('conversation_id', conversationId);
+      axios.post("/create-message", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }).then(function (response) {
-        _this3.message = null;
-        _this3.groupMessages.push(response.data);
-        _this3.message = null;
+        _this4.message = null;
+        _this4.groupMessages.push(response.data);
+        _this4.message = null;
       });
     },
     // functionalty Groups
@@ -5462,16 +5506,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     },
     AddNewGroup: function AddNewGroup() {
-      var _this4 = this;
+      var _this5 = this;
       axios.post("/add-new-group", {
         'group': this.AddGroup
       }).then(function (response) {
-        _this4.groups.push(response.data.groups);
-        _this4.newgroupId = response.data.groups.id;
-        _this4.AddGroup.Members = [];
-        _this4.AddGroup.GroupName = '';
-        _this4.showDropdown = false;
-        _this4.$fire({
+        _this5.groups.push(response.data.groups);
+        _this5.newgroupId = response.data.groups.id;
+        _this5.AddGroup.Members = [];
+        _this5.AddGroup.GroupName = '';
+        _this5.showDropdown = false;
+        _this5.$fire({
           title: "".concat(response.data.groups.name),
           text: "has been Created Successfully",
           type: "success",
@@ -5480,15 +5524,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       });
     },
     deleteGroup: function deleteGroup(group) {
-      var _this5 = this;
+      var _this6 = this;
       var index = this.groups.indexOf(group);
       if (index !== -1) {
         axios.post("/delete-group", {
           'groupId': group.id
         }).then(function (response) {
-          _this5.groups.splice(index, 1);
-          _this5.activeGroup = null;
-          _this5.$fire({
+          _this6.groups.splice(index, 1);
+          _this6.activeGroup = null;
+          _this6.$fire({
             title: "".concat(response.data.groupName),
             text: "has been deleted Successfully",
             type: "error",
@@ -5499,7 +5543,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     //Notifications methods
     getUnreadNotifications: function getUnreadNotifications() {
-      var _this6 = this;
+      var _this7 = this;
       if (this.currentPage > this.lastPage || this.isAllDataFetched) {
         return;
       }
@@ -5510,22 +5554,22 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         }
       }).then(function (response) {
         var newNotifications = response.data.data;
-        var existingNotifications = _this6.notification.map(function (item) {
+        var existingNotifications = _this7.notification.map(function (item) {
           return item.id;
         });
         var filteredNotifications = newNotifications.filter(function (item) {
           return !existingNotifications.includes(item.id);
         });
-        _this6.notification = [].concat(_toConsumableArray(_this6.notification), _toConsumableArray(filteredNotifications));
-        _this6.currentPage = response.data.current_page;
-        _this6.lastPage = response.data.last_page;
-        _this6.isFetchingData = false;
-        if (_this6.currentPage > _this6.lastPage) {
-          _this6.isAllDataFetched = true;
+        _this7.notification = [].concat(_toConsumableArray(_this7.notification), _toConsumableArray(filteredNotifications));
+        _this7.currentPage = response.data.current_page;
+        _this7.lastPage = response.data.last_page;
+        _this7.isFetchingData = false;
+        if (_this7.currentPage > _this7.lastPage) {
+          _this7.isAllDataFetched = true;
         }
       })["catch"](function (error) {
         console.log('Error fetching data:', error);
-        _this6.isFetchingData = false;
+        _this7.isFetchingData = false;
       });
     },
     handleScroll: function handleScroll() {
@@ -5548,16 +5592,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     newgroupId: function newgroupId(val) {}
   },
   created: function created() {
-    var _this7 = this;
+    var _this8 = this;
     Echo.channel('AddNewGroup').listen('AddNewGroup', function (e) {
-      if (e.available_users.includes(_this7.user.id)) _this7.groups.push(e.converstion);
+      if (e.available_users.includes(_this8.user.id)) _this8.groups.push(e.converstion);
     });
     this.fetchGroups();
     this.$watch('activeGroup', function (newValue) {
       if (newValue) {
-        Echo.leave("PrivateGroupChat.".concat(_this7.activeGroup));
-        Echo["private"]('PrivateGroupChat.' + _this7.activeGroup).listen('PrivateGroupSent', function (e) {
-          _this7.groupMessages.push(e.message);
+        Echo.leave("PrivateGroupChat.".concat(_this8.activeGroup));
+        Echo["private"]('PrivateGroupChat.' + _this8.activeGroup).listen('PrivateGroupSent', function (e) {
+          _this8.groupMessages.push(e.message);
         });
       }
     });
@@ -5576,7 +5620,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     });
     Echo["private"]('App.Models.User.' + this.user.id).notification(function (notification) {
-      _this7.notification.unshift(notification);
+      _this8.notification.unshift(notification);
       console.log('notif', notification);
     });
   }
@@ -6115,10 +6159,27 @@ var render = function render() {
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
     }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(7, true)]), _vm._v(" "), _c("div", {
-      staticClass: "card-body"
+      staticClass: "card-body",
+      style: message.attachment ? {
+        height: "120px"
+      } : ""
     }, [_c("p", {
-      staticClass: "mb-0"
-    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")])])])]);
+      staticClass: "mb-1 mt-0 text-center"
+    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")]), _vm._v(" "), message.attachment != null ? _c("div", {
+      staticClass: "image-container rounded",
+      staticStyle: {
+        width: "200px",
+        height: "200px"
+      }
+    }, [_c("img", {
+      staticStyle: {
+        width: "100%"
+      },
+      attrs: {
+        src: message.attachment,
+        alt: ""
+      }
+    })]) : _vm._e()])])]);
   }), _vm._v(" "), _vm.activeGroup ? _c("div", [_c("li", {
     staticClass: "mb-3"
   }, [_c("div", {
@@ -6149,7 +6210,54 @@ var render = function render() {
     attrs: {
       "for": "textAreaExample3"
     }
-  }, [_vm._v("Message")])])]), _vm._v(" "), _c("button", {
+  }, [_vm._v("Message")])]), _vm._v(" "), _c("div", {
+    staticClass: "form-outline form-white"
+  }, [_c("input", {
+    ref: "attachmentInput",
+    staticStyle: {
+      display: "none"
+    },
+    attrs: {
+      type: "file",
+      id: "attachment-input"
+    },
+    on: {
+      change: _vm.handleFileSelection
+    }
+  }), _vm._v(" "), _c("button", {
+    attrs: {
+      id: "attachment-button"
+    },
+    on: {
+      click: _vm.openFilePicker
+    }
+  }, [_vm._v("Attach File")]), _vm._v(" "), _c("label", {
+    staticClass: "form-label",
+    attrs: {
+      "for": "attachment-input"
+    }
+  }, [_vm._v("Attachment")])]), _vm._v(" "), _vm.localImageCreated != null ? _c("div", {
+    staticStyle: {
+      width: "100px",
+      height: "100px"
+    },
+    attrs: {
+      lass: "image-container"
+    }
+  }, [_c("img", {
+    staticStyle: {
+      width: "100%"
+    },
+    attrs: {
+      src: _vm.localImageCreated,
+      alt: ""
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "remove-icon",
+    on: {
+      click: _vm.removeImage
+    }
+  }, [_vm._v("✖")])]) : _vm._e()]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-light btn-lg btn-rounded float-end",
     attrs: {
       type: "button"
