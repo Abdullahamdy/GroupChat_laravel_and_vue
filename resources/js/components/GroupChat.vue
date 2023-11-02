@@ -179,15 +179,14 @@
                                             <i class="far fa-clock"></i> 12 mins ago
                                         </p>
                                     </div>
-                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''">
+                                    <div class="card-body" :style="(message.attachment) ? { 'height': '120px' } : ''">
                                         <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
                                         <div class="image-container rounded" v-if="message.attachment != null"
-
-                                        style="width:200px;height: 200px; overflow: hidden;">
-                                        <img :src="message.attachment" alt="" style="width: 100%;">
-                                    </div>
+                                            style="width:200px;height: 200px; overflow: hidden;">
+                                            <img :src="message.attachment" alt="" style="width: 100%;">
+                                        </div>
                                     </div>
 
                                 </div>
@@ -209,6 +208,12 @@
                                         style="width:100px;height: 100px;">
                                         <img :src="localImageCreated" alt="" style="width: 100%;">
                                         <span class="remove-icon" @click="removeImage">&#10006;</span>
+                                    </div>
+                                    <div>
+                                        <button @click="startRecording">Start Recording</button>
+                                        <button @click="stopRecording">Stop Recording</button>
+                                        <button @click="sendRecording">Send Recording</button>
+                                        <audio ref="audioPlayer" controls></audio>
                                     </div>
                                 </li>
                                 <button @click="sendMessage" type="button"
@@ -240,7 +245,7 @@ export default {
             },
             attachment: '',
             localImageCreated: null,
-            imageDelele:null,
+            imageDelele: null,
             newgroupId: '',
             notification: [],
             currentPage: 1,
@@ -249,6 +254,8 @@ export default {
             isAllDataFetched: false,
             showMenu: false,
             menuX: 0,
+            mediaRecorder: null,
+            recordedChunks: [],
             menuY: 0
 
 
@@ -280,11 +287,44 @@ export default {
             }).catch(err => {
             })
         },
+        startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    this.mediaRecorder = new MediaRecorder(stream);
+                    this.mediaRecorder.addEventListener('dataavailable', event => {
+                        if (event.data.size > 0) {
+                            this.recordedChunks.push(event.data);
+                            console.log(this.recordedChunks);
+                        }
+                    });
+                    this.mediaRecorder.start();
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
+        },
+        stopRecording() {
+            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+            }
+        },
+        sendRecording() {
+            if (this.recordedChunks.length === 0) {
+                console.warn('No recorded audio available.');
+                return;
+            }
+            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(blob);
+
+            const audioPlayer = new Audio(audioUrl);
+            audioPlayer.play();
+
+        },
         removeImage() {
             //HandleRemoveImagess
             const formData = new FormData();
             formData.append('image', this.imageDelele);
-            axios.post(`/delete-local-image`,formData, {
+            axios.post(`/delete-local-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
