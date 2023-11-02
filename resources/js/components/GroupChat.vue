@@ -185,7 +185,7 @@
                                         </p>
                                         <div class="image-container rounded" v-if="message.attachment != null"
 
-                                        style="width:200px;height: 200px;">
+                                        style="width:200px;height: 200px; overflow: hidden;">
                                         <img :src="message.attachment" alt="" style="width: 100%;">
                                     </div>
                                     </div>
@@ -240,7 +240,7 @@ export default {
             },
             attachment: '',
             localImageCreated: null,
-            ImageName: null,
+            imageDelele:null,
             newgroupId: '',
             notification: [],
             currentPage: 1,
@@ -264,11 +264,8 @@ export default {
             this.$refs.attachmentInput.click();
         },
         handleFileSelection(event) {
-            // const conversationId = this.activeGroup;
-            this.attachment = ''
             const file = event.target.files[0];
-            this.ImageName = file.name;
-            console.log('the file from is' + file)
+            console.log('file is' + file);
             const formData = new FormData();
             formData.append('image', file);
             axios.post(`/create-local-image`, formData, {
@@ -278,18 +275,23 @@ export default {
             }).then(response => {
                 this.localImageCreated = response.data.url;
                 this.attachment = response.data.url;
+                this.imageDelele = response.data.path
                 console.log(response)
             }).catch(err => {
-                console.log(err)
             })
         },
         removeImage() {
-            //HandleRemoveImage
-            const image = this.ImageName
-            axios.post(`/delete-local-image`, { 'image': image }).then(response => {
+            //HandleRemoveImagess
+            const formData = new FormData();
+            formData.append('image', this.imageDelele);
+            axios.post(`/delete-local-image`,formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
 
             }).then(response => {
-                console.log(response)
+                this.localImageCreated = null
+                console.log('image removed successfully')
             }).catch(err => {
                 console.log(err)
             })

@@ -12,6 +12,7 @@ use App\Events\PushToSideBar;
 use App\Events\PrivateGroupSent;
 use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 class GroupChatController extends Controller
@@ -91,18 +92,24 @@ class GroupChatController extends Controller
 
     public function CreateLocalImage(Request $request)
     {
-        if($request->file('image')){
+        if ($request->file('image')) {
             $image = $request->file('image');
             if ($image) {
                 $path = $image->store('public/images');
                 $url = Storage::url($path);
-                return response()->json(['url' => $url], 200);
+                return response()->json(['url' => $url,'path'=>$path], 200);
             }
         }
-
     }
     public function deleteLocalImage(Request $request)
     {
-        dd($request->all());
+
+        $imagePath = 'public/images/qs9Ml5uWdEGi9ZkMezcM6B2WCzUMgFkkGnGu7Wv3.png';
+        if (Storage::exists($request->image)) {
+            Storage::delete( $request->image);
+            echo 'Image removed successfully.';
+        } else {
+            echo 'Image not found.';
+        }
     }
 }

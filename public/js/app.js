@@ -5391,7 +5391,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       },
       attachment: '',
       localImageCreated: null,
-      ImageName: null,
+      imageDelele: null,
       newgroupId: '',
       notification: [],
       currentPage: 1,
@@ -5412,11 +5412,8 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     handleFileSelection: function handleFileSelection(event) {
       var _this = this;
-      // const conversationId = this.activeGroup;
-      this.attachment = '';
       var file = event.target.files[0];
-      this.ImageName = file.name;
-      console.log('the file from is' + file);
+      console.log('file is' + file);
       var formData = new FormData();
       formData.append('image', file);
       axios.post("/create-local-image", formData, {
@@ -5426,18 +5423,22 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }).then(function (response) {
         _this.localImageCreated = response.data.url;
         _this.attachment = response.data.url;
+        _this.imageDelele = response.data.path;
         console.log(response);
-      })["catch"](function (err) {
-        console.log(err);
-      });
+      })["catch"](function (err) {});
     },
     removeImage: function removeImage() {
-      //HandleRemoveImage
-      var image = this.ImageName;
-      axios.post("/delete-local-image", {
-        'image': image
-      }).then(function (response) {}).then(function (response) {
-        console.log(response);
+      var _this2 = this;
+      //HandleRemoveImagess
+      var formData = new FormData();
+      formData.append('image', this.imageDelele);
+      axios.post("/delete-local-image", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(function (response) {
+        _this2.localImageCreated = null;
+        console.log('image removed successfully');
       })["catch"](function (err) {
         console.log(err);
       });
@@ -5450,17 +5451,17 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.menuY = buttonRect.bottom;
     },
     fetchGroups: function fetchGroups() {
-      var _this2 = this;
+      var _this3 = this;
       axios.get('/get-groups').then(function (response) {
-        _this2.groups = response.data.groups;
+        _this3.groups = response.data.groups;
       });
     },
     fetchMessage: function fetchMessage() {
-      var _this3 = this;
+      var _this4 = this;
       axios.get("/conversation/".concat(this.activeGroup)).then(function (response) {
-        _this3.groupMessages = response.data.groupMessages;
-        var searchgroup = _this3.groups.find(function (group) {
-          return group.id === _this3.activeGroup;
+        _this4.groupMessages = response.data.groupMessages;
+        var searchgroup = _this4.groups.find(function (group) {
+          return group.id === _this4.activeGroup;
         });
         var cyrcleSpan = document.querySelector("span[id=\"".concat(searchgroup.id, "\"]"));
         if (cyrcleSpan) {
@@ -5473,7 +5474,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       this.activeGroup = groupId;
     },
     sendMessage: function sendMessage() {
-      var _this4 = this;
+      var _this5 = this;
       var conversationId = this.activeGroup;
       var attachment = this.attachment;
       console.log('the attachment from send message is' + attachment);
@@ -5488,9 +5489,9 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           'Content-Type': 'multipart/form-data'
         }
       }).then(function (response) {
-        _this4.message = null;
-        _this4.groupMessages.push(response.data);
-        _this4.message = null;
+        _this5.message = null;
+        _this5.groupMessages.push(response.data);
+        _this5.message = null;
       });
     },
     // functionalty Groups
@@ -5506,16 +5507,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     },
     AddNewGroup: function AddNewGroup() {
-      var _this5 = this;
+      var _this6 = this;
       axios.post("/add-new-group", {
         'group': this.AddGroup
       }).then(function (response) {
-        _this5.groups.push(response.data.groups);
-        _this5.newgroupId = response.data.groups.id;
-        _this5.AddGroup.Members = [];
-        _this5.AddGroup.GroupName = '';
-        _this5.showDropdown = false;
-        _this5.$fire({
+        _this6.groups.push(response.data.groups);
+        _this6.newgroupId = response.data.groups.id;
+        _this6.AddGroup.Members = [];
+        _this6.AddGroup.GroupName = '';
+        _this6.showDropdown = false;
+        _this6.$fire({
           title: "".concat(response.data.groups.name),
           text: "has been Created Successfully",
           type: "success",
@@ -5524,15 +5525,15 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       });
     },
     deleteGroup: function deleteGroup(group) {
-      var _this6 = this;
+      var _this7 = this;
       var index = this.groups.indexOf(group);
       if (index !== -1) {
         axios.post("/delete-group", {
           'groupId': group.id
         }).then(function (response) {
-          _this6.groups.splice(index, 1);
-          _this6.activeGroup = null;
-          _this6.$fire({
+          _this7.groups.splice(index, 1);
+          _this7.activeGroup = null;
+          _this7.$fire({
             title: "".concat(response.data.groupName),
             text: "has been deleted Successfully",
             type: "error",
@@ -5543,7 +5544,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     //Notifications methods
     getUnreadNotifications: function getUnreadNotifications() {
-      var _this7 = this;
+      var _this8 = this;
       if (this.currentPage > this.lastPage || this.isAllDataFetched) {
         return;
       }
@@ -5554,22 +5555,22 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         }
       }).then(function (response) {
         var newNotifications = response.data.data;
-        var existingNotifications = _this7.notification.map(function (item) {
+        var existingNotifications = _this8.notification.map(function (item) {
           return item.id;
         });
         var filteredNotifications = newNotifications.filter(function (item) {
           return !existingNotifications.includes(item.id);
         });
-        _this7.notification = [].concat(_toConsumableArray(_this7.notification), _toConsumableArray(filteredNotifications));
-        _this7.currentPage = response.data.current_page;
-        _this7.lastPage = response.data.last_page;
-        _this7.isFetchingData = false;
-        if (_this7.currentPage > _this7.lastPage) {
-          _this7.isAllDataFetched = true;
+        _this8.notification = [].concat(_toConsumableArray(_this8.notification), _toConsumableArray(filteredNotifications));
+        _this8.currentPage = response.data.current_page;
+        _this8.lastPage = response.data.last_page;
+        _this8.isFetchingData = false;
+        if (_this8.currentPage > _this8.lastPage) {
+          _this8.isAllDataFetched = true;
         }
       })["catch"](function (error) {
         console.log('Error fetching data:', error);
-        _this7.isFetchingData = false;
+        _this8.isFetchingData = false;
       });
     },
     handleScroll: function handleScroll() {
@@ -5592,16 +5593,16 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     newgroupId: function newgroupId(val) {}
   },
   created: function created() {
-    var _this8 = this;
+    var _this9 = this;
     Echo.channel('AddNewGroup').listen('AddNewGroup', function (e) {
-      if (e.available_users.includes(_this8.user.id)) _this8.groups.push(e.converstion);
+      if (e.available_users.includes(_this9.user.id)) _this9.groups.push(e.converstion);
     });
     this.fetchGroups();
     this.$watch('activeGroup', function (newValue) {
       if (newValue) {
-        Echo.leave("PrivateGroupChat.".concat(_this8.activeGroup));
-        Echo["private"]('PrivateGroupChat.' + _this8.activeGroup).listen('PrivateGroupSent', function (e) {
-          _this8.groupMessages.push(e.message);
+        Echo.leave("PrivateGroupChat.".concat(_this9.activeGroup));
+        Echo["private"]('PrivateGroupChat.' + _this9.activeGroup).listen('PrivateGroupSent', function (e) {
+          _this9.groupMessages.push(e.message);
         });
       }
     });
@@ -5620,7 +5621,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }
     });
     Echo["private"]('App.Models.User.' + this.user.id).notification(function (notification) {
-      _this8.notification.unshift(notification);
+      _this9.notification.unshift(notification);
       console.log('notif', notification);
     });
   }
@@ -6169,7 +6170,8 @@ var render = function render() {
       staticClass: "image-container rounded",
       staticStyle: {
         width: "200px",
-        height: "200px"
+        height: "200px",
+        overflow: "hidden"
       }
     }, [_c("img", {
       staticStyle: {
