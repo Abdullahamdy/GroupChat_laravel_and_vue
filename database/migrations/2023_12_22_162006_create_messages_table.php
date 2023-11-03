@@ -19,6 +19,7 @@ class CreateMessagesTable extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->text('body')->nullable();
             $table->text('attachment')->nullable();
+            $table->text('mime_type')->nullable();
             $table->timestamps();
         });
     }

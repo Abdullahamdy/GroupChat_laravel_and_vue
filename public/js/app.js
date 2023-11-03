@@ -5446,23 +5446,6 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         console.error('Error accessing microphone:', error);
       });
     },
-    stopRecording: function stopRecording() {
-      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-        this.mediaRecorder.stop();
-      }
-    },
-    sendRecording: function sendRecording() {
-      if (this.recordedChunks.length === 0) {
-        console.warn('No recorded audio available.');
-        return;
-      }
-      var blob = new Blob(this.recordedChunks, {
-        type: 'audio/webm'
-      });
-      var audioUrl = URL.createObjectURL(blob);
-      var audioPlayer = new Audio(audioUrl);
-      audioPlayer.play();
-    },
     removeImage: function removeImage() {
       var _this3 = this;
       //HandleRemoveImagess
@@ -5527,6 +5510,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       }).then(function (response) {
         _this6.message = null;
         _this6.groupMessages.push(response.data);
+        _this6.localImageCreated = null;
         _this6.message = null;
       });
     },
@@ -6295,24 +6279,7 @@ var render = function render() {
     on: {
       click: _vm.removeImage
     }
-  }, [_vm._v("✖")])]) : _vm._e(), _vm._v(" "), _c("div", [_c("button", {
-    on: {
-      click: _vm.startRecording
-    }
-  }, [_vm._v("Start Recording")]), _vm._v(" "), _c("button", {
-    on: {
-      click: _vm.stopRecording
-    }
-  }, [_vm._v("Stop Recording")]), _vm._v(" "), _c("button", {
-    on: {
-      click: _vm.sendRecording
-    }
-  }, [_vm._v("Send Recording")]), _vm._v(" "), _c("audio", {
-    ref: "audioPlayer",
-    attrs: {
-      controls: ""
-    }
-  })])]), _vm._v(" "), _c("button", {
+  }, [_vm._v("✖")])]) : _vm._e()]), _vm._v(" "), _c("button", {
     staticClass: "btn btn-light btn-lg btn-rounded float-end",
     attrs: {
       type: "button"

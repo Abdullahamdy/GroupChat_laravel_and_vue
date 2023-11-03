@@ -209,12 +209,7 @@
                                         <img :src="localImageCreated" alt="" style="width: 100%;">
                                         <span class="remove-icon" @click="removeImage">&#10006;</span>
                                     </div>
-                                    <div>
-                                        <button @click="startRecording">Start Recording</button>
-                                        <button @click="stopRecording">Stop Recording</button>
-                                        <button @click="sendRecording">Send Recording</button>
-                                        <audio ref="audioPlayer" controls></audio>
-                                    </div>
+
                                 </li>
                                 <button @click="sendMessage" type="button"
                                     class="btn btn-light btn-lg btn-rounded float-end">Send</button>
@@ -303,23 +298,7 @@ export default {
                     console.error('Error accessing microphone:', error);
                 });
         },
-        stopRecording() {
-            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                this.mediaRecorder.stop();
-            }
-        },
-        sendRecording() {
-            if (this.recordedChunks.length === 0) {
-                console.warn('No recorded audio available.');
-                return;
-            }
-            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
-            const audioUrl = URL.createObjectURL(blob);
 
-            const audioPlayer = new Audio(audioUrl);
-            audioPlayer.play();
-
-        },
         removeImage() {
             //HandleRemoveImagess
             const formData = new FormData();
@@ -391,7 +370,7 @@ export default {
             ).then(response => {
                 this.message = null;
                 this.groupMessages.push(response.data)
-
+                this.localImageCreated = null;
                 this.message = null;
 
             });
