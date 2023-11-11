@@ -42,9 +42,21 @@ class GroupChatController extends Controller
     public function sendMessage(Request $request)
     {
         $data = [];
+        $date['attachment'] = null;
+        if ($request->hasFile('audio') && !$request->image) {
+            $audio = $request->file('audio');
+            $path = $audio->store('audio', 'public'); // Save the audio file to the 'public' disk under the 'audio' directory
+            $data['attachment'] = '/storage/' . $path;
+            $data['attachment'] = '/storage/' . $path;
+            $data['body'] = 'Hello';
+            $data['mime_type'] = 'audio';
+        }
+
+        if ($request->image) {
+            $date['attachment'] = $request->image;
+            $data['attachment'] = $request->image;
+        }
         $data['body'] = $request->body;
-        $date['attachment'] = $request->image;
-        $data['attachment'] = $request->image;
         $data['user_id'] = Auth::id();
         $conversation = Conversation::find($request->conversation_id);
         $conversation->update(['last_message_at' => now()]);
@@ -97,7 +109,7 @@ class GroupChatController extends Controller
             if ($image) {
                 $path = $image->store('public/images');
                 $url = Storage::url($path);
-                return response()->json(['url' => $url,'path'=>$path], 200);
+                return response()->json(['url' => $url, 'path' => $path], 200);
             }
         }
     }
@@ -106,10 +118,17 @@ class GroupChatController extends Controller
 
         $imagePath = 'public/images/qs9Ml5uWdEGi9ZkMezcM6B2WCzUMgFkkGnGu7Wv3.png';
         if (Storage::exists($request->image)) {
-            Storage::delete( $request->image);
+            Storage::delete($request->image);
             echo 'Image removed successfully.';
         } else {
             echo 'Image not found.';
         }
+    }
+
+    public function saveAudio(Request $request)
+    {
+
+
+        return response()->json(['error' => 'No audio file received.'], 400);
     }
 }

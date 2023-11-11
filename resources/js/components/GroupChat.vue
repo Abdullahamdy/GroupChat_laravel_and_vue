@@ -183,11 +183,26 @@
                                         <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
-                                        <div class="image-container rounded" v-if="message.attachment != null"
+                                        <div class="image-container rounded" v-if="message.attachment != null && message.mime_type == null"
                                             style="width:200px;height: 200px; overflow: hidden;">
                                             <img :src="message.attachment" alt="" style="width: 100%;">
                                         </div>
                                     </div>
+
+
+
+                                    <div class="card-body">
+                                        <div class="image-container rounded"
+                                            v-if="message.attachment != null && message.mime_type != null">
+                                            <audio ref="audioPlayer" :src="message.attachment" alt="" style="width: 100%;"
+                                                controls></audio>
+                                        </div>
+                                    </div>
+
+
+
+
+
 
                                 </div>
                             </li>
@@ -203,6 +218,16 @@
                                             style="display: none;" @change="handleFileSelection">
                                         <button id="attachment-button" @click="openFilePicker">Attach File</button>
                                         <label class="form-label" for="attachment-input">Attachment</label>
+
+
+
+                                        <button @click="startRecording">Start Recording</button>
+                                        <button @click="stopRecording">Stop Recording</button>
+
+
+
+
+
                                     </div>
                                     <div lass="image-container" v-if="localImageCreated != null"
                                         style="width:100px;height: 100px;">
@@ -251,7 +276,10 @@ export default {
             menuX: 0,
             mediaRecorder: null,
             recordedChunks: [],
-            menuY: 0
+            menuY: 0,
+            mediaRecorder: null,
+            recordedChunks: [],
+            isRecording: false
 
 
         }
@@ -283,21 +311,34 @@ export default {
             })
         },
         startRecording() {
+            if (this.isRecording) {
+                console.warn('Already recording.');
+                return;
+            }
+
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     this.mediaRecorder = new MediaRecorder(stream);
                     this.mediaRecorder.addEventListener('dataavailable', event => {
                         if (event.data.size > 0) {
                             this.recordedChunks.push(event.data);
-                            console.log(this.recordedChunks);
                         }
                     });
                     this.mediaRecorder.start();
+                    this.isRecording = true;
                 })
                 .catch(error => {
                     console.error('Error accessing microphone:', error);
                 });
         },
+        stopRecording() {
+            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                this.mediaRecorder.stop();
+                this.isRecording = false;
+                console.log(this.mediaRecorder)
+            }
+        },
+
 
         removeImage() {
             //HandleRemoveImagess
@@ -350,12 +391,17 @@ export default {
 
         sendMessage() {
             const conversationId = this.activeGroup;
-            const attachment = this.attachment
-            console.log('the attachment from send message is' + attachment)
+            const formData = new FormData();
+            if (this.recordedChunks.length === 0) {
+                console.warn('No recorded audio available.');
+            }
+            const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+            formData.append('audio', blob, 'recorded_audio.webm');
+
             if (!this.message) {
                 return alert('please Enter Message');
             }
-            const formData = new FormData();
+
             formData.append('image', this.attachment);
             formData.append('body', this.message),
                 formData.append('conversation_id', conversationId)
@@ -371,6 +417,7 @@ export default {
                 this.message = null;
                 this.groupMessages.push(response.data)
                 this.localImageCreated = null;
+                this.recordedChunks = [];
                 this.message = null;
 
             });

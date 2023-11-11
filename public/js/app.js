@@ -5370,16 +5370,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
+function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter); }
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: ['user'],
   data: function data() {
-    return {
+    var _ref;
+    return _ref = {
       groups: [],
       activeGroup: '',
       groupMessages: [],
@@ -5403,7 +5408,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       mediaRecorder: null,
       recordedChunks: [],
       menuY: 0
-    };
+    }, _defineProperty(_ref, "mediaRecorder", null), _defineProperty(_ref, "recordedChunks", []), _defineProperty(_ref, "isRecording", false), _ref;
   },
   mounted: function mounted() {
     this.getUnreadNotifications();
@@ -5431,6 +5436,10 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     },
     startRecording: function startRecording() {
       var _this2 = this;
+      if (this.isRecording) {
+        console.warn('Already recording.');
+        return;
+      }
       navigator.mediaDevices.getUserMedia({
         audio: true
       }).then(function (stream) {
@@ -5438,13 +5447,20 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         _this2.mediaRecorder.addEventListener('dataavailable', function (event) {
           if (event.data.size > 0) {
             _this2.recordedChunks.push(event.data);
-            console.log(_this2.recordedChunks);
           }
         });
         _this2.mediaRecorder.start();
+        _this2.isRecording = true;
       })["catch"](function (error) {
         console.error('Error accessing microphone:', error);
       });
+    },
+    stopRecording: function stopRecording() {
+      if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        this.mediaRecorder.stop();
+        this.isRecording = false;
+        console.log(this.mediaRecorder);
+      }
     },
     removeImage: function removeImage() {
       var _this3 = this;
@@ -5495,12 +5511,17 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     sendMessage: function sendMessage() {
       var _this6 = this;
       var conversationId = this.activeGroup;
-      var attachment = this.attachment;
-      console.log('the attachment from send message is' + attachment);
+      var formData = new FormData();
+      if (this.recordedChunks.length === 0) {
+        console.warn('No recorded audio available.');
+      }
+      var blob = new Blob(this.recordedChunks, {
+        type: 'audio/webm'
+      });
+      formData.append('audio', blob, 'recorded_audio.webm');
       if (!this.message) {
         return alert('please Enter Message');
       }
-      var formData = new FormData();
       formData.append('image', this.attachment);
       formData.append('body', this.message), formData.append('conversation_id', conversationId);
       axios.post("/create-message", formData, {
@@ -5511,6 +5532,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         _this6.message = null;
         _this6.groupMessages.push(response.data);
         _this6.localImageCreated = null;
+        _this6.recordedChunks = [];
         _this6.message = null;
       });
     },
@@ -6186,7 +6208,7 @@ var render = function render() {
       } : ""
     }, [_c("p", {
       staticClass: "mb-1 mt-0 text-center"
-    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")]), _vm._v(" "), message.attachment != null ? _c("div", {
+    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")]), _vm._v(" "), message.attachment != null && message.mime_type == null ? _c("div", {
       staticClass: "image-container rounded",
       staticStyle: {
         width: "200px",
@@ -6200,6 +6222,21 @@ var render = function render() {
       attrs: {
         src: message.attachment,
         alt: ""
+      }
+    })]) : _vm._e()]), _vm._v(" "), _c("div", {
+      staticClass: "card-body"
+    }, [message.attachment != null && message.mime_type != null ? _c("div", {
+      staticClass: "image-container rounded"
+    }, [_c("audio", {
+      ref: "audioPlayer",
+      refInFor: true,
+      staticStyle: {
+        width: "100%"
+      },
+      attrs: {
+        src: message.attachment,
+        alt: "",
+        controls: ""
       }
     })]) : _vm._e()])])]);
   }), _vm._v(" "), _vm.activeGroup ? _c("div", [_c("li", {
@@ -6258,7 +6295,15 @@ var render = function render() {
     attrs: {
       "for": "attachment-input"
     }
-  }, [_vm._v("Attachment")])]), _vm._v(" "), _vm.localImageCreated != null ? _c("div", {
+  }, [_vm._v("Attachment")]), _vm._v(" "), _c("button", {
+    on: {
+      click: _vm.startRecording
+    }
+  }, [_vm._v("Start Recording")]), _vm._v(" "), _c("button", {
+    on: {
+      click: _vm.stopRecording
+    }
+  }, [_vm._v("Stop Recording")])]), _vm._v(" "), _vm.localImageCreated != null ? _c("div", {
     staticStyle: {
       width: "100px",
       height: "100px"

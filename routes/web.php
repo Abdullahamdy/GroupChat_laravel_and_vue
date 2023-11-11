@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/add-new-group', [GroupChatController::class, 'AddNewGroup']);
     Route::post('/delete-group', [GroupChatController::class, 'deleteGroup']);
+    Route::post('/save-audio', [GroupChatController::class, 'saveAudio']);
     Route::get('/getUnreadNotifications', [GroupChatController::class, 'getUnreadNotifications']);
 });
 
