@@ -45,11 +45,12 @@ class GroupChatController extends Controller
         $date['attachment'] = null;
         if ($request->hasFile('audio') && !$request->image) {
             $audio = $request->file('audio');
-            $path = $audio->store('audio', 'public'); // Save the audio file to the 'public' disk under the 'audio' directory
-            $data['attachment'] = '/storage/' . $path;
-            $data['attachment'] = '/storage/' . $path;
-            $data['body'] = 'Hello';
-            $data['mime_type'] = 'audio';
+            if ($audio->getSize() > 0) {
+                $path = $audio->store('audio', 'public'); // Save the audio file to the 'public' disk under the 'audio' directory
+                $data['attachment'] = '/storage/' . $path;
+                $data['attachment'] = '/storage/' . $path;
+                $data['mime_type'] = 'audio';
+            }
         }
 
         if ($request->image) {
@@ -123,12 +124,5 @@ class GroupChatController extends Controller
         } else {
             echo 'Image not found.';
         }
-    }
-
-    public function saveAudio(Request $request)
-    {
-
-
-        return response()->json(['error' => 'No audio file received.'], 400);
     }
 }

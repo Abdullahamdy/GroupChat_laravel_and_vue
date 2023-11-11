@@ -5519,9 +5519,6 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         type: 'audio/webm'
       });
       formData.append('audio', blob, 'recorded_audio.webm');
-      if (!this.message) {
-        return alert('please Enter Message');
-      }
       formData.append('image', this.attachment);
       formData.append('body', this.message), formData.append('conversation_id', conversationId);
       axios.post("/create-message", formData, {
@@ -6201,14 +6198,14 @@ var render = function render() {
       }
     }, [_c("p", {
       staticClass: "fw-bold mb-0"
-    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(7, true)]), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(message.user.name))]), _vm._v(" "), _vm._m(7, true)]), _vm._v(" "), message.attachment != null && message.mime_type == null ? _c("div", {
       staticClass: "card-body",
       style: message.attachment ? {
         height: "120px"
       } : ""
     }, [_c("p", {
       staticClass: "mb-1 mt-0 text-center"
-    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")]), _vm._v(" "), message.attachment != null && message.mime_type == null ? _c("div", {
+    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")]), _vm._v(" "), _c("div", {
       staticClass: "image-container rounded",
       staticStyle: {
         width: "200px",
@@ -6223,10 +6220,18 @@ var render = function render() {
         src: message.attachment,
         alt: ""
       }
-    })]) : _vm._e()]), _vm._v(" "), _c("div", {
-      staticClass: "card-body"
-    }, [message.attachment != null && message.mime_type != null ? _c("div", {
-      staticClass: "image-container rounded"
+    })])]) : _vm._e(), _vm._v(" "), message.attachment != null && message.mime_type != null && message.body == null ? _c("div", {
+      staticClass: "card-body",
+      style: message.attachment ? {
+        height: "120px"
+      } : ""
+    }, [_c("div", {
+      staticClass: "image-container rounded",
+      staticStyle: {
+        width: "200px",
+        height: "200px",
+        overflow: "hidden"
+      }
     }, [_c("audio", {
       ref: "audioPlayer",
       refInFor: true,
@@ -6238,7 +6243,11 @@ var render = function render() {
         alt: "",
         controls: ""
       }
-    })]) : _vm._e()])])]);
+    })])]) : _vm._e(), _vm._v(" "), message.attachment == null && message.mime_type == null && message.body != null ? _c("div", {
+      staticClass: "card-body"
+    }, [_c("p", {
+      staticClass: "mb-1 mt-0 text-center"
+    }, [_vm._v("\n                                        " + _vm._s(message.body) + "\n                                    ")])]) : _vm._e()])]);
   }), _vm._v(" "), _vm.activeGroup ? _c("div", [_c("li", {
     staticClass: "mb-3"
   }, [_c("div", {
@@ -6252,6 +6261,7 @@ var render = function render() {
     }],
     staticClass: "form-control",
     attrs: {
+      placeholder: "Type Message",
       id: "textAreaExample3",
       rows: "4"
     },

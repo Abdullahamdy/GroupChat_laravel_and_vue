@@ -179,37 +179,38 @@
                                             <i class="far fa-clock"></i> 12 mins ago
                                         </p>
                                     </div>
-                                    <div class="card-body" :style="(message.attachment) ? { 'height': '120px' } : ''">
+                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''"
+                                    v-if="message.attachment != null && message.mime_type == null">
                                         <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
-                                        <div class="image-container rounded" v-if="message.attachment != null && message.mime_type == null"
+                                        <div class="image-container rounded"
                                             style="width:200px;height: 200px; overflow: hidden;">
                                             <img :src="message.attachment" alt="" style="width: 100%;">
                                         </div>
                                     </div>
-
-
-
-                                    <div class="card-body">
+                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''"
+                                    v-if="message.attachment !=null && message.mime_type != null && message.body == null">
                                         <div class="image-container rounded"
-                                            v-if="message.attachment != null && message.mime_type != null">
+                                            style="width:200px;height: 200px; overflow: hidden;">
                                             <audio ref="audioPlayer" :src="message.attachment" alt="" style="width: 100%;"
                                                 controls></audio>
                                         </div>
                                     </div>
-
-
-
-
-
+                                    <!-- show image selected -->
+                                    <div class="card-body"
+                                    v-if="message.attachment ==null && message.mime_type == null && message.body != null">
+                                    <p class="mb-1 mt-0 text-center">
+                                            {{ message.body }}
+                                        </p>
+                                    </div>
 
                                 </div>
                             </li>
                             <div v-if="activeGroup">
                                 <li class="mb-3">
                                     <div class="form-outline form-white">
-                                        <textarea class="form-control" id="textAreaExample3" v-model="message"
+                                        <textarea placeholder="Type Message" class="form-control" id="textAreaExample3" v-model="message"
                                             rows="4"></textarea>
                                         <label class="form-label" for="textAreaExample3">Message</label>
                                     </div>
@@ -219,14 +220,8 @@
                                         <button id="attachment-button" @click="openFilePicker">Attach File</button>
                                         <label class="form-label" for="attachment-input">Attachment</label>
 
-
-
                                         <button @click="startRecording">Start Recording</button>
                                         <button @click="stopRecording">Stop Recording</button>
-
-
-
-
 
                                     </div>
                                     <div lass="image-container" v-if="localImageCreated != null"
@@ -286,8 +281,6 @@ export default {
     },
     mounted() {
         this.getUnreadNotifications();
-
-
     },
     methods: {
         openFilePicker() {
@@ -367,8 +360,6 @@ export default {
         fetchGroups() {
             axios.get('/get-groups').then(response => {
                 this.groups = response.data.groups;
-
-
             });
 
         },
@@ -397,11 +388,6 @@ export default {
             }
             const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
             formData.append('audio', blob, 'recorded_audio.webm');
-
-            if (!this.message) {
-                return alert('please Enter Message');
-            }
-
             formData.append('image', this.attachment);
             formData.append('body', this.message),
                 formData.append('conversation_id', conversationId)
