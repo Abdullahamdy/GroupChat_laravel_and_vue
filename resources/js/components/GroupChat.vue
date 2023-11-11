@@ -179,8 +179,8 @@
                                             <i class="far fa-clock"></i> 12 mins ago
                                         </p>
                                     </div>
-                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''"
-                                    v-if="message.attachment != null && message.mime_type == null">
+                                    <div class="card-body" :style="(message.attachment) ? { 'height': '120px' } : ''"
+                                        v-if="message.attachment != null && message.mime_type == null">
                                         <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
@@ -189,8 +189,8 @@
                                             <img :src="message.attachment" alt="" style="width: 100%;">
                                         </div>
                                     </div>
-                                    <div class="card-body"  :style="(message.attachment) ? { 'height': '120px' } : ''"
-                                    v-if="message.attachment !=null && message.mime_type != null && message.body == null">
+                                    <div class="card-body" :style="(message.attachment) ? { 'height': '120px' } : ''"
+                                        v-if="message.attachment != null && message.mime_type != null && message.body == null">
                                         <div class="image-container rounded"
                                             style="width:200px;height: 200px; overflow: hidden;">
                                             <audio ref="audioPlayer" :src="message.attachment" alt="" style="width: 100%;"
@@ -199,8 +199,8 @@
                                     </div>
                                     <!-- show image selected -->
                                     <div class="card-body"
-                                    v-if="message.attachment ==null && message.mime_type == null && message.body != null">
-                                    <p class="mb-1 mt-0 text-center">
+                                        v-if="message.attachment == null && message.mime_type == null && message.body != null">
+                                        <p class="mb-1 mt-0 text-center">
                                             {{ message.body }}
                                         </p>
                                     </div>
@@ -210,18 +210,24 @@
                             <div v-if="activeGroup">
                                 <li class="mb-3">
                                     <div class="form-outline form-white">
-                                        <textarea placeholder="Type Message" class="form-control" id="textAreaExample3" v-model="message"
-                                            rows="4"></textarea>
+                                        <textarea placeholder="Type Message" class="form-control" id="textAreaExample3"
+                                            v-model="message" rows="4"></textarea>
                                         <label class="form-label" for="textAreaExample3">Message</label>
                                     </div>
                                     <div class="form-outline form-white">
                                         <input type="file" id="attachment-input" ref="attachmentInput"
                                             style="display: none;" @change="handleFileSelection">
-                                        <button id="attachment-button" @click="openFilePicker">Attach File</button>
-                                        <label class="form-label" for="attachment-input">Attachment</label>
-
-                                        <button @click="startRecording">Start Recording</button>
-                                        <button @click="stopRecording">Stop Recording</button>
+                                        <button class="attachment-button" id="attachment-button"
+                                            @click="openFilePicker">choose file</button>
+                                        <div class="containerrecord">
+                                            <i @click="MicroPhoneClick"   :style="(spinnerloading) ? { 'color': 'blue','fontSize':'30px' } : ''"
+                                                class="fas fa-microphone"></i>
+                                            <div class="hollow-dots-spinner" v-if="spinnerloading">
+                                                <div class="dot"></div>
+                                                <div class="dot"></div>
+                                                <div class="dot"></div>
+                                            </div>
+                                        </div>
 
                                     </div>
                                     <div lass="image-container" v-if="localImageCreated != null"
@@ -245,6 +251,7 @@
     </div>
 </template>
 <script>
+
 export default {
     props: ['user'],
     data() {
@@ -274,7 +281,9 @@ export default {
             menuY: 0,
             mediaRecorder: null,
             recordedChunks: [],
-            isRecording: false
+            clickCount: 0,
+            isRecording: false,
+            spinnerloading:false,
 
 
         }
@@ -303,11 +312,28 @@ export default {
             }).catch(err => {
             })
         },
+
+        MicroPhoneClick() {
+            if(this.clickCount == 2){
+                this.clickCount = 0
+            }
+            this.clickCount++
+            if (this.clickCount === 1) {
+                this.startRecording();
+
+            } else if (this.clickCount === 2) {
+                this.stopRecording();
+            }
+            console.log(this.clickCount)
+        },
         startRecording() {
+            console.log('start')
+
+            this.spinnerloading = true;
             if (this.isRecording) {
-                console.warn('Already recording.');
                 return;
             }
+
 
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
@@ -325,9 +351,11 @@ export default {
                 });
         },
         stopRecording() {
+            console.log('stop')
             if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
                 this.mediaRecorder.stop();
                 this.isRecording = false;
+                this.spinnerloading = false;
                 console.log(this.mediaRecorder)
             }
         },
@@ -555,23 +583,23 @@ export default {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
 <style scoped>
+.attachment-button {
+    width: 108px;
+    margin-right: 50px;
+    padding: 10px;
+    height: 44px;
+}
+.containerrecord {
+  display: inline;
+}
+.fa-microphone{
+    cursor: pointer;
+    color: brown;
+    font-size: 20px;
+}
+
 .gradient-custom {
     /* fallback for old browsers */
     background: #fccb90;
@@ -715,5 +743,59 @@ export default {
     height: 1rem;
     border-radius: 50%;
     background-color: blue;
+
+}
+
+.hollow-dots-spinner,
+.hollow-dots-spinner * {
+    display: inline-block;
+  margin-left: 10px;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #000;
+  margin-right: 5px; /* تعديل هذه القيمة حسب الحاجة */
+}
+
+.hollow-dots-spinner {
+    height: 15px;
+    width: calc(30px * 3);
+}
+
+.hollow-dots-spinner .dot {
+    width: 15px;
+    height: 15px;
+    margin: 0 calc(15px / 2);
+    border: calc(15px / 5) solid #ff1d5e;
+    border-radius: 50%;
+    float: left;
+    transform: scale(0);
+    animation: hollow-dots-spinner-animation 1000ms ease infinite 0ms;
+}
+
+.hollow-dots-spinner .dot:nth-child(1) {
+    animation-delay: calc(300ms * 1);
+}
+
+.hollow-dots-spinner .dot:nth-child(2) {
+    animation-delay: calc(300ms * 2);
+}
+
+.hollow-dots-spinner .dot:nth-child(3) {
+    animation-delay: calc(300ms * 3);
+
+}
+
+@keyframes hollow-dots-spinner-animation {
+    50% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
 </style>

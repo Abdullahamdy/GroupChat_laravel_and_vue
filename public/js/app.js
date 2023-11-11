@@ -5408,7 +5408,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       mediaRecorder: null,
       recordedChunks: [],
       menuY: 0
-    }, _defineProperty(_ref, "mediaRecorder", null), _defineProperty(_ref, "recordedChunks", []), _defineProperty(_ref, "isRecording", false), _ref;
+    }, _defineProperty(_ref, "mediaRecorder", null), _defineProperty(_ref, "recordedChunks", []), _defineProperty(_ref, "clickCount", 0), _defineProperty(_ref, "isRecording", false), _defineProperty(_ref, "spinnerloading", false), _ref;
   },
   mounted: function mounted() {
     this.getUnreadNotifications();
@@ -5434,10 +5434,23 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
         console.log(response);
       })["catch"](function (err) {});
     },
+    MicroPhoneClick: function MicroPhoneClick() {
+      if (this.clickCount == 2) {
+        this.clickCount = 0;
+      }
+      this.clickCount++;
+      if (this.clickCount === 1) {
+        this.startRecording();
+      } else if (this.clickCount === 2) {
+        this.stopRecording();
+      }
+      console.log(this.clickCount);
+    },
     startRecording: function startRecording() {
       var _this2 = this;
+      console.log('start');
+      this.spinnerloading = true;
       if (this.isRecording) {
-        console.warn('Already recording.');
         return;
       }
       navigator.mediaDevices.getUserMedia({
@@ -5456,9 +5469,11 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       });
     },
     stopRecording: function stopRecording() {
+      console.log('stop');
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         this.mediaRecorder.stop();
         this.isRecording = false;
+        this.spinnerloading = false;
         console.log(this.mediaRecorder);
       }
     },
@@ -6294,26 +6309,33 @@ var render = function render() {
       change: _vm.handleFileSelection
     }
   }), _vm._v(" "), _c("button", {
+    staticClass: "attachment-button",
     attrs: {
       id: "attachment-button"
     },
     on: {
       click: _vm.openFilePicker
     }
-  }, [_vm._v("Attach File")]), _vm._v(" "), _c("label", {
-    staticClass: "form-label",
-    attrs: {
-      "for": "attachment-input"
-    }
-  }, [_vm._v("Attachment")]), _vm._v(" "), _c("button", {
+  }, [_vm._v("choose file")]), _vm._v(" "), _c("div", {
+    staticClass: "containerrecord"
+  }, [_c("i", {
+    staticClass: "fas fa-microphone",
+    style: _vm.spinnerloading ? {
+      color: "blue",
+      fontSize: "30px"
+    } : "",
     on: {
-      click: _vm.startRecording
+      click: _vm.MicroPhoneClick
     }
-  }, [_vm._v("Start Recording")]), _vm._v(" "), _c("button", {
-    on: {
-      click: _vm.stopRecording
-    }
-  }, [_vm._v("Stop Recording")])]), _vm._v(" "), _vm.localImageCreated != null ? _c("div", {
+  }), _vm._v(" "), _vm.spinnerloading ? _c("div", {
+    staticClass: "hollow-dots-spinner"
+  }, [_c("div", {
+    staticClass: "dot"
+  }), _vm._v(" "), _c("div", {
+    staticClass: "dot"
+  }), _vm._v(" "), _c("div", {
+    staticClass: "dot"
+  })]) : _vm._e()])]), _vm._v(" "), _vm.localImageCreated != null ? _c("div", {
     staticStyle: {
       width: "100px",
       height: "100px"
@@ -13527,7 +13549,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n.circle-icon[data-v-047f85c8] {\n    display: inline-block;\n    width: 1rem;\n    height: 1rem;\n    border-radius: 50%;\n    background-color: blue;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.attachment-button[data-v-047f85c8] {\n    width: 108px;\n    margin-right: 50px;\n    padding: 10px;\n    height: 44px;\n}\n.containerrecord[data-v-047f85c8] {\n  display: inline;\n}\n.fa-microphone[data-v-047f85c8]{\n    cursor: pointer;\n    color: brown;\n    font-size: 20px;\n}\n.gradient-custom[data-v-047f85c8] {\n    /* fallback for old browsers */\n    background: #fccb90;\n\n    /* Chrome 10-25, Safari 5.1-6 */\n\n    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */\n    background: linear-gradient(to bottom right, rgba(252, 203, 144, 1), rgba(213, 126, 235, 1))\n}\n.mask-custom[data-v-047f85c8] {\n    background: rgba(24, 24, 16, .2);\n    border-radius: 2em;\n    -webkit-backdrop-filter: blur(15px);\n            backdrop-filter: blur(15px);\n    border: 2px solid rgba(255, 255, 255, 0.05);\n    background-clip: padding-box;\n    box-shadow: 10px 10px 10px rgba(46, 54, 68, 0.03);\n}\n.user-details[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.user-details img[data-v-047f85c8] {\n    margin-right: 10px;\n    width: 50px;\n    height: 50px;\n}\n.dropdown .dropbtn[data-v-047f85c8] {\n    font-size: 16px;\n    border: none;\n    outline: none;\n    color: white;\n    padding: 14px 16px;\n    background-color: inherit;\n    font-family: inherit;\n    margin: -255px;\n}\n.navbar a[data-v-047f85c8]:hover,\n.dropdown:hover .dropbtn[data-v-047f85c8] {\n    background-color: #686e73;\n}\n.dropdown-content[data-v-047f85c8] {\n    display: none;\n    position: absolute;\n    top: 24px;\n    left: -188px;\n    background-color: #f9f9f9;\n    min-width: 160px;\n    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);\n    z-index: 1;\n    min-width: 200px;\n    max-height: 400px;\n    overflow: auto;\n    width: 300px\n}\n.dropdown-content .media-body>div[data-v-047f85c8] {\n    font-size: 15px;\n    line-height: 1.3;\n}\n.dropdown-content .media-body a[data-v-047f85c8] {\n    float: right;\n    color: #1580dc;\n    background: none;\n    text-decoration: none;\n    display: block;\n    text-align: left;\n}\n.see-all[data-v-047f85c8] {\n    color: #000;\n    background: #e4dede;\n    text-decoration: none;\n    text-align: center !important;\n    display: block;\n    padding: 4px;\n}\n.dropdown-content p[data-v-047f85c8] {\n    font-size: 14px;\n}\n.dropdown-content a[data-v-047f85c8]:hover {\n    background-color: #ddd;\n}\n.dropdown:hover .dropdown-content[data-v-047f85c8] {\n    display: block;\n}\n.sendMes[data-v-047f85c8] {\n    border-radius: 40px;\n    background-color: white;\n    font-size: 30px;\n}\n.just_now[data-v-047f85c8] {\n    color: black !important;\n    font-size: 30px;\n}\n.lastMessage[data-v-047f85c8] {\n    color: black !important;\n    border-radius: \"40px\";\n}\n.custom-menu[data-v-047f85c8] {\n    position: absolute;\n    background-color: white;\n    border: 1px solid gray;\n    padding: 10px;\n    width: 402px;\n}\n.menu-item[data-v-047f85c8] {\n    display: inline-block;\n    align-items: center;\n    margin-bottom: 10px;\n}\n.menu-item-content[data-v-047f85c8] {\n    display: flex;\n    align-items: center;\n}\n.menu-item-text[data-v-047f85c8] {\n    margin-right: 10px;\n}\n.circle-icon[data-v-047f85c8] {\n    display: inline-block;\n    width: 1rem;\n    height: 1rem;\n    border-radius: 50%;\n    background-color: blue;\n}\n.hollow-dots-spinner[data-v-047f85c8],\n.hollow-dots-spinner *[data-v-047f85c8] {\n    display: inline-block;\n  margin-left: 10px;\n}\n.dot[data-v-047f85c8] {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  background-color: #000;\n  margin-right: 5px; /* تعديل هذه القيمة حسب الحاجة */\n}\n.hollow-dots-spinner[data-v-047f85c8] {\n    height: 15px;\n    width: calc(30px * 3);\n}\n.hollow-dots-spinner .dot[data-v-047f85c8] {\n    width: 15px;\n    height: 15px;\n    margin: 0 calc(15px / 2);\n    border: calc(15px / 5) solid #ff1d5e;\n    border-radius: 50%;\n    float: left;\n    transform: scale(0);\n    animation: hollow-dots-spinner-animation-047f85c8 1000ms ease infinite 0ms;\n}\n.hollow-dots-spinner .dot[data-v-047f85c8]:nth-child(1) {\n    animation-delay: calc(300ms * 1);\n}\n.hollow-dots-spinner .dot[data-v-047f85c8]:nth-child(2) {\n    animation-delay: calc(300ms * 2);\n}\n.hollow-dots-spinner .dot[data-v-047f85c8]:nth-child(3) {\n    animation-delay: calc(300ms * 3);\n}\n@keyframes hollow-dots-spinner-animation-047f85c8 {\n50% {\n        transform: scale(1);\n        opacity: 1;\n}\n100% {\n        opacity: 0;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
