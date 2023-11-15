@@ -29,6 +29,7 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
+        "vue-router": "^3.6.5",
         "vue-simple-alert": "^1.1.1"
     }
 }

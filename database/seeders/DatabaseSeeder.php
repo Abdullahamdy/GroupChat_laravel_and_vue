@@ -17,10 +17,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        User::create(['name'=>'Abdullah','email'=>'Abdullah@gmail.com','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
-        User::create(['name'=>'Hamdy','email'=>'Hamdy@gmail.com','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
-        User::create(['name'=>'Elgayar','email'=>'Elgayar@gmail.com','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
-        User::create(['name'=>'Abdo','email'=>'Abdo@gmail.com','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10),]);
+        User::create(['name'=>'Abdullah','email'=>'Abdullah@gmail.com','image'=>'Abdullah.jpg','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
+        User::create(['name'=>'Hamdy','email'=>'Hamdy@gmail.com','image'=>'hamdy.jpg','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
+        User::create(['name'=>'Elgayar','email'=>'Elgayar@gmail.com','image'=>'ibrahem.jpg','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10)]);
+        User::create(['name'=>'Abdo','email'=>'Abdo@gmail.com','image'=>'Abdo.jpg','email_verified_at'=>now(),'password'=>bcrypt('11111111'),'remember_token'=>Str::random(10),]);
 
 
 

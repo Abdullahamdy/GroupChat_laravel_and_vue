@@ -23,7 +23,7 @@ class MessageController extends Controller
     }
     public function sendMessage(Request $request)
     {
-        $message =  auth()->user()->messages()->create(['message' => $request->message]);
+        $message =  auth()->user()->messages()->create(['body' => $request->message]);
         broadcast(new MessageSent(auth()->user(), $message->load('user')))->toOthers();
         return response(['status' => 'message Send Successfully', 'message' => $message]);
     }
@@ -44,7 +44,7 @@ class MessageController extends Controller
     {
         $senderId = Auth::id();
         $user = User::find($FriendId);
-        $messages = Message::with('user')->where(function ($query) use ($senderId, $FriendId) {
+        $messages = Message::whereConversationId(Null)->with('user')->where(function ($query) use ($senderId, $FriendId) {
                 $query->where('user_id', $senderId)
                     ->where('receiver_id', $FriendId);
             })
@@ -59,7 +59,7 @@ class MessageController extends Controller
 
     public function sendPrivateMessage(Request $request,$id)
     {
-        $input = $request->all();
+        $input['body'] = $request->message;
         $input['receiver_id'] = $id;
         $message =  auth()->user()->messages()->create($input);
         broadcast(new PrivateMessageSent($message->load('user')))->toOthers();

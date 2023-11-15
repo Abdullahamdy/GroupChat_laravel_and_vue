@@ -22,10 +22,13 @@
                             <div class="badge bg-success float-right">0</div>
                             <div class="d-flex align-items-start">
                                 <!-- <img :src="'Images/' + friend.image" class="rounded-circle mr-1" alt="Vanessa Tucker" -->
-                                    <!-- width="40" height="40"> -->
-                                <div class="flex-grow-1 ml-3 btn" @click="activeFriend = friend.id" :style="{color: onlineFriends.find(onlineFriend=>onlineFriend.id == friend.id) ? 'green' :'red' }">
+                                <!-- width="40" height="40"> -->
+                                <div class="flex-grow-1 ml-3 btn" @click="activeFriend = friend.id"
+                                    :style="{ color: onlineFriends.find(onlineFriend => onlineFriend.id == friend.id) ? 'green' : 'red' }">
                                     {{ friend.name }}
-                                    <div class="small"><span class="fas fa-circle chat-online" ></span> {{ onlineFriends.find(onlineFriend=>onlineFriend.id == friend.id) ? 'Online' : '' }}</div>
+                                    <div class="small"><span class="fas fa-circle chat-online"></span> {{
+                                        onlineFriends.find(onlineFriend => onlineFriend.id == friend.id) ? 'Online' : '' }}
+                                    </div>
                                 </div>
                             </div>
                         </a>
@@ -63,7 +66,7 @@
 
                                     <div class="flex-shrinv-1 bg-light rounded py-2 px-3 mr-3">
                                         <div class="font-weight-bold mb-1">{{ m.user.name }}</div>
-                                        {{ m.message }}
+                                        {{ m.body }}
                                     </div>
                                 </div>
                                 <br>
@@ -89,10 +92,11 @@
 
 <script>
 export default {
-    props: ['user'],
+
     data() {
         return {
             message: null,
+            user: [],
             allmessages: [],
             users: [],
             typingClock: null,
@@ -110,6 +114,14 @@ export default {
             })
         }
 
+    },
+
+    mounted() {
+        if (this.$route.params.id != undefined || this.$route.params.id != null) {
+
+
+
+        }
     },
     watch: {
         activeFriend(val) {
@@ -152,7 +164,12 @@ export default {
         fetchUsers() {
             axios.get('/get-users').then(response => {
                 this.users = response.data.users;
-                this.activeFriend = this.friends[0].id;
+                if (this.$route.params.id != undefined || this.$route.params.id != null) {
+                    const foundUserIndex = this.friends.findIndex(user => user.id === this.$route.params.id);
+                    this.activeFriend = this.friends[foundUserIndex].id;
+
+
+                }
             });
 
         },
@@ -162,6 +179,7 @@ export default {
     },
 
     created() {
+        this.user = window.authUser;
         this.fetchUsers();
         Echo.join(`plchat`)
             .here((users) => {
@@ -169,11 +187,9 @@ export default {
             })
             .joining((user) => {
                 this.onlineFriends.push(user)
-                console.log(user.name);
             })
             .leaving((user) => {
-                this.onlineFriends.splice(this.onlineFriends.indexOf(user),1)
-                console.log(user.name);
+                this.onlineFriends.splice(this.onlineFriends.indexOf(user), 1)
             })
             .error((error) => {
                 console.error(error);

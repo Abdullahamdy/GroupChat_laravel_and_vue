@@ -41,7 +41,7 @@
 
                                 <ul class="list-unstyled mb-0">
                                     <li class="p-2 border-bottom" v-for="group in groups" :key="group.id" :id="group.id"
-                                        @contextmenu="handleRightClick" @click="activeGroupfun(group.id)"
+                                        @click="activeGroupfun(group.id)"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3) !important;">
                                         <a href="#!" class="d-flex justify-content-between link-light">
                                             <div class="d-flex flex-row">
@@ -134,32 +134,7 @@
                     <div>
 
                     </div>
-                    <div class="custom-menu" v-if="showMenu" :style="{ top: `${menuY}px`, left: `${menuX}px` }">
-                        <div class="menu-item">
-                            <div class="menu-item-content">
-                                <div class="menu-item-text">Abdullah</div>
-                                <div class="menu-item-image">
-                                    <img v-if="user.id != message.user_id"
-                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                                        class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="30">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="menu-item">
-                            <div class="memebergroups" style="text-align: center;color:#0056b3">
-                                <h6>Members</h6>
-                            </div>
-                            <div class="menu-item-content">
-                                <div class="menu-item-text">Hamdy</div>
-                                <div class="menu-item-image">
-                                    <img v-if="user.id != message.user_id"
-                                        src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                                        class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="30">
-                                </div>
-                            </div>
-                        </div>
 
-                    </div>
 
 
                     <div class="col-md-6 col-lg-7 col-xl-7" v-if="activeGroup != null">
@@ -168,10 +143,13 @@
                             <!-- sender -->
                             <li class="d-flex justify-content-between mb-4" v-for="(message, index) in groupMessages"
                                 :key="index">
-                                <img v-if="user.id != message.user_id"
-                                    src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                                    class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
+
                                 <div class="card mask-custom">
+                                    <router-link :to="{ name: 'private-chat', params: { 'id': message.user_id }}">
+                                        <img v-if="user.id != message.user_id" :src="'/images/' + message.user.image"
+                                            alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
+                                            width="60">
+                                    </router-link>
                                     <div class="card-header d-flex justify-content-between p-3"
                                         style="border-bottom: 1px solid rgba(255,255,255,.3);">
                                         <p class="fw-bold mb-0">{{ message.user.name }}</p>
@@ -220,7 +198,8 @@
                                         <button class="attachment-button" id="attachment-button"
                                             @click="openFilePicker">choose file</button>
                                         <div class="containerrecord">
-                                            <i @click="MicroPhoneClick"   :style="(spinnerloading) ? { 'color': 'blue','fontSize':'30px' } : ''"
+                                            <i @click="MicroPhoneClick"
+                                                :style="(spinnerloading) ? { 'color': 'blue', 'fontSize': '30px' } : ''"
                                                 class="fas fa-microphone"></i>
                                             <div class="hollow-dots-spinner" v-if="spinnerloading">
                                                 <div class="dot"></div>
@@ -237,7 +216,7 @@
                                     </div>
 
                                 </li>
-                                <button @click="sendMessage" type="button"
+                                <button @click="sendMessage" type="button" :disabled="isButtonDisabled"
                                     class="btn btn-light btn-lg btn-rounded float-end">Send</button>
                             </div>
                         </ul>
@@ -253,10 +232,11 @@
 <script>
 
 export default {
-    props: ['user'],
+
     data() {
         return {
             groups: [],
+            user: [],
             activeGroup: '',
             groupMessages: [],
             message: '',
@@ -274,7 +254,6 @@ export default {
             lastPage: 1,
             isFetchingData: false,
             isAllDataFetched: false,
-            showMenu: false,
             menuX: 0,
             mediaRecorder: null,
             recordedChunks: [],
@@ -283,13 +262,20 @@ export default {
             recordedChunks: [],
             clickCount: 0,
             isRecording: false,
-            spinnerloading:false,
+            spinnerloading: false,
+            recordingcreated: false,
 
 
         }
     },
     mounted() {
         this.getUnreadNotifications();
+    },
+    computed: {
+        isButtonDisabled() {
+            return !(this.message || this.localImageCreated || this.recordingcreated);
+        }
+
     },
     methods: {
         openFilePicker() {
@@ -314,7 +300,7 @@ export default {
         },
 
         MicroPhoneClick() {
-            if(this.clickCount == 2){
+            if (this.clickCount == 2) {
                 this.clickCount = 0
             }
             this.clickCount++
@@ -354,6 +340,7 @@ export default {
             console.log('stop')
             if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
                 this.mediaRecorder.stop();
+                this.recordingcreated = true;
                 this.isRecording = false;
                 this.spinnerloading = false;
                 console.log(this.mediaRecorder)
@@ -378,13 +365,7 @@ export default {
             })
 
         },
-        handleRightClick(event) {
-            event.preventDefault();
-            const buttonRect = event.target.getBoundingClientRect();
-            this.showMenu = !this.showMenu;
-            this.menuX = buttonRect.left;
-            this.menuY = buttonRect.bottom;
-        },
+
         fetchGroups() {
             axios.get('/get-groups').then(response => {
                 this.groups = response.data.groups;
@@ -412,6 +393,7 @@ export default {
             const conversationId = this.activeGroup;
             const formData = new FormData();
             if (this.recordedChunks.length === 0) {
+                this.recordingcreated = false;
                 console.warn('No recorded audio available.');
             }
             const blob = new Blob(this.recordedChunks, { type: 'audio/webm' });
@@ -433,6 +415,7 @@ export default {
                 this.localImageCreated = null;
                 this.recordedChunks = [];
                 this.message = null;
+                this.recordingcreated = false;
 
             });
         },
@@ -535,6 +518,7 @@ export default {
     },
 
     created() {
+        this.user = window.authUser;
         Echo.channel('AddNewGroup')
             .listen('AddNewGroup', (e) => {
                 if (e.available_users.includes(this.user.id))
@@ -591,10 +575,12 @@ export default {
     padding: 10px;
     height: 44px;
 }
+
 .containerrecord {
-  display: inline;
+    display: inline;
 }
-.fa-microphone{
+
+.fa-microphone {
     cursor: pointer;
     color: brown;
     font-size: 20px;
@@ -749,14 +735,16 @@ export default {
 .hollow-dots-spinner,
 .hollow-dots-spinner * {
     display: inline-block;
-  margin-left: 10px;
+    margin-left: 10px;
 }
+
 .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #000;
-  margin-right: 5px; /* تعديل هذه القيمة حسب الحاجة */
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #000;
+    margin-right: 5px;
+    /* تعديل هذه القيمة حسب الحاجة */
 }
 
 .hollow-dots-spinner {
