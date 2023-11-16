@@ -14,6 +14,7 @@ use App\Notifications\NotifyMembers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Collection;
 
 class GroupChatController extends Controller
 {
@@ -41,6 +42,11 @@ class GroupChatController extends Controller
 
     public function sendMessage(Request $request)
     {
+        $request->validate([
+            'conversation_id' => 'required|integer',
+            'body' => 'sometimes|nullable|min:2,max:250',
+            'image' => 'sometimes| nullable | image | mimes:jpeg,png,jpg',
+        ]);
         $data = [];
         $date['attachment'] = null;
         if ($request->hasFile('audio') && !$request->image) {
@@ -53,10 +59,14 @@ class GroupChatController extends Controller
             }
         }
 
-        if ($request->image) {
-            $date['attachment'] = $request->image;
-            $data['attachment'] = $request->image;
+        if ($image = $request->image) {
+
+            $path = $image->store('public/images');
+            $url = Storage::url($path);
+            $date['attachment'] = $url;
+            $data['attachment'] = $url;
         }
+
         $data['body'] = $request->body;
         $data['user_id'] = Auth::id();
         $conversation = Conversation::find($request->conversation_id);
@@ -71,12 +81,20 @@ class GroupChatController extends Controller
 
     public function AddNewGroup(Request $request)
     {
+        $request->validate([
+            'group.GroupName' => 'required|min:5|max:55',
+            'group.Members' => 'required|array',
+            'group.Members.*' => 'integer',
+            // 'image' => 'sometimes| nullable | image | mimes:jpeg,png,jpg',
+        ]);
         $conversation =  Conversation::create([
             'name' => $request->group['GroupName'],
             'uuid' => Str::uuid(),
             'user_id' => Auth::id()
         ]);
-        $conversation->users()->attach($request->group['Members']);
+        $mygroupsMembers = new Collection($request->group['Members']);
+        $mygroupsMembers->push(Auth::id());
+        $conversation->users()->attach($mygroupsMembers);
         $conversation = $conversation->load('lastMessage');
         $conversationOwner = $conversation->user_id;
         $memberIds = $conversation->users->except($conversationOwner);
@@ -117,7 +135,6 @@ class GroupChatController extends Controller
     public function deleteLocalImage(Request $request)
     {
 
-        $imagePath = 'public/images/qs9Ml5uWdEGi9ZkMezcM6B2WCzUMgFkkGnGu7Wv3.png';
         if (Storage::exists($request->image)) {
             Storage::delete($request->image);
             echo 'Image removed successfully.';

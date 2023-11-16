@@ -90,39 +90,25 @@
                             <div>
                                 <input type="text" v-model="AddGroup.GroupName" class="mt-2" placeholder="Group Name"
                                     style="font-weight:bold; border-radius: 10px;height: 50px;">
+                                <div>
+                                    <span class="error" v-if="errors.GroupName">{{ errors.GroupName[0] }}</span>
+                                </div>
                                 <h2 style="color: #007bff;">Members</h2>
-                                <div @click="AddMember(1)" class="user-details" style="display:inline-block">
-                                    <div v-if="AddGroup.Members.includes(1)"
-                                        :style="(AddGroup.Members.includes(1)) ? { 'font-weight': 'bolder' } : ''">
+                                <div v-for="(user, index) in users" :key="index" @click="AddMember(user.id)"
+                                    class="user-details" style="display:inline-block">
+                                    <div v-if="AddGroup.Members.includes(user.id)"
+                                        :style="(AddGroup.Members.includes(user.id)) ? { 'font-weight': 'bolder' } : ''">
                                         <h2 style="margin-top: 10px;margin-left: 10px;">
                                             <span>&#x2611;</span>
                                         </h2>
                                     </div>
                                     <div style="position: relative;">
-                                        <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
+                                        <img :src="'/images/' + user.image" alt="User Photo" />
                                     </div>
-                                    <p class="" style="color: #0056b3;font-weight:bolder">Abdullah</p>
+                                    <p class="" style="color: #0056b3;font-weight:bolder">{{ user.name }}</p>
                                 </div>
-                                <div @click="AddMember(2)" class="user-details" style="display:inline-block">
-                                    <div v-if="AddGroup.Members.includes(2)"
-                                        :style="(AddGroup.Members.includes(2)) ? { 'font-weight': 'bolder' } : ''">
-                                        <h2 style="margin-top: 10px;margin-left: 10px;">
-                                            <span>&#x2611;</span>
-                                        </h2>
-                                    </div>
-                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
-                                    <p class="" style="color: #0056b3; font-weight:bolder">Abdullah</p>
-                                </div>
-                                <div @click="AddMember(3)" class="user-details" style="display:inline-block">
-
-                                    <div v-if="AddGroup.Members.includes(3)"
-                                        :style="(AddGroup.Members.includes(3)) ? { 'font-weight': 'bolder' } : ''">
-                                        <h2 style="margin-top: 10px;margin-left: 10px;">
-                                            <span>&#x2611;</span>
-                                        </h2>
-                                    </div>
-                                    <img src="/images/Abdullah.jpg" width="50px;hight:50px" alt="User Photo" />
-                                    <p style="color: #0056b3; font-weight:bolder">Abdullah</p>
+                                <div>
+                                    <span class="error" v-if="errors.Members">{{ errors.Members[0] }}</span>
                                 </div>
                             </div>
                             <div class="user-details" style="display:inline-block">
@@ -145,7 +131,7 @@
                                 :key="index">
 
                                 <div class="card mask-custom">
-                                    <router-link :to="{ name: 'private-chat', params: { 'id': message.user_id }}">
+                                    <router-link :to="{ name: 'private-chat', params: { 'id': message.user_id } }">
                                         <img v-if="user.id != message.user_id" :src="'/images/' + message.user.image"
                                             alt="avatar" class="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
                                             width="60">
@@ -190,11 +176,12 @@
                                     <div class="form-outline form-white">
                                         <textarea placeholder="Type Message" class="form-control" id="textAreaExample3"
                                             v-model="message" rows="4"></textarea>
-                                        <label class="form-label" for="textAreaExample3">Message</label>
+                                        <span class="error" v-if="errors.body">{{ errors.body[0] }}</span>
+                                        <label class="form-label" for="textAreaExample3"></label>
                                     </div>
                                     <div class="form-outline form-white">
                                         <input type="file" id="attachment-input" ref="attachmentInput"
-                                            style="display: none;" @change="handleFileSelection">
+                                            style="display: none;" @input="handleFileSelection">
                                         <button class="attachment-button" id="attachment-button"
                                             @click="openFilePicker">choose file</button>
                                         <div class="containerrecord">
@@ -209,9 +196,9 @@
                                         </div>
 
                                     </div>
-                                    <div lass="image-container" v-if="localImageCreated != null"
+                                    <div lass="image-container" v-if="url"
                                         style="width:100px;height: 100px;">
-                                        <img :src="localImageCreated" alt="" style="width: 100%;">
+                                        <img :src="url" alt="" style="width: 100%;">
                                         <span class="remove-icon" @click="removeImage">&#10006;</span>
                                     </div>
 
@@ -237,17 +224,18 @@ export default {
         return {
             groups: [],
             user: [],
+            errors: [],
             activeGroup: '',
             groupMessages: [],
             message: '',
             showDropdown: false,
+            users: [],
             AddGroup: {
                 GroupName: '',
                 Members: [],
             },
+            url:false,
             attachment: '',
-            localImageCreated: null,
-            imageDelele: null,
             newgroupId: '',
             notification: [],
             currentPage: 1,
@@ -270,33 +258,31 @@ export default {
     },
     mounted() {
         this.getUnreadNotifications();
+        this.getusers();
     },
     computed: {
         isButtonDisabled() {
-            return !(this.message || this.localImageCreated || this.recordingcreated);
+            return !(this.message || this.url || this.recordingcreated);
         }
 
     },
     methods: {
+        getusers() {
+            axios.get('/get-users').then((res) => {
+                this.users = res.data.users;
+            }).then((err) => {
+                console.log(err);
+            })
+
+        },
         openFilePicker() {
             this.$refs.attachmentInput.click();
         },
-        handleFileSelection(event) {
-            const file = event.target.files[0];
-            console.log('file is' + file);
-            const formData = new FormData();
-            formData.append('image', file);
-            axios.post(`/create-local-image`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            }).then(response => {
-                this.localImageCreated = response.data.url;
-                this.attachment = response.data.url;
-                this.imageDelele = response.data.path
-                console.log(response)
-            }).catch(err => {
-            })
+        handleFileSelection(e) {
+            const file = e.target.files[0];
+            this.attachment = file;
+            this.url = URL.createObjectURL(file);
+            URL.revokeObjectURL(file)
         },
 
         MicroPhoneClick() {
@@ -349,20 +335,7 @@ export default {
 
 
         removeImage() {
-            //HandleRemoveImagess
-            const formData = new FormData();
-            formData.append('image', this.imageDelele);
-            axios.post(`/delete-local-image`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-
-            }).then(response => {
-                this.localImageCreated = null
-                console.log('image removed successfully')
-            }).catch(err => {
-                console.log(err)
-            })
+           this.url = false;
 
         },
 
@@ -412,12 +385,15 @@ export default {
             ).then(response => {
                 this.message = null;
                 this.groupMessages.push(response.data)
-                this.localImageCreated = null;
+                this.url = false;
                 this.recordedChunks = [];
                 this.message = null;
                 this.recordingcreated = false;
+                this.errors = [];
 
-            });
+            }).catch((error) => {
+                this.errors = error.response.data.errors;
+            })
         },
 
 
@@ -442,10 +418,13 @@ export default {
                 this.newgroupId = response.data.groups.id;
                 this.AddGroup.Members = [];
                 this.AddGroup.GroupName = '';
+                this.errors = [];
                 this.showDropdown = false;
                 this.$fire({
                     title: `${response.data.groups.name}`, text: "has been Created Successfully", type: "success", timer: 2000
                 });
+            }).catch((error) => {
+                this.errors = error.response.data.errors;
             });
         },
         deleteGroup(group) {
@@ -569,6 +548,10 @@ export default {
 
 </script>
 <style scoped>
+.error {
+    color: red;
+}
+
 .attachment-button {
     width: 108px;
     margin-right: 50px;
@@ -616,7 +599,9 @@ export default {
     width: 50px;
     height: 50px;
 }
-
+.remove-icon:hover{
+    cursor: pointer;
+}
 
 .dropdown .dropbtn {
     font-size: 16px;

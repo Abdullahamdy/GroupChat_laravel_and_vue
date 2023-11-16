@@ -55,7 +55,7 @@
                 </div>
 
                 <div>
-                    <router-link class="router-link" :to="{ path: '/groupChat' }">Group</router-link>
+                    <router-link class="router-link" :to="{ path: '/groupChat' }">My Groups</router-link>
                 </div>
             </div>
         </div>

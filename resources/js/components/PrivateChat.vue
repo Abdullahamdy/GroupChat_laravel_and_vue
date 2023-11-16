@@ -3,7 +3,11 @@
         <div class="container p-0">
 
             <h1 class="h3 mb-3">Messages</h1>
-
+            <div style="text-align: center;position: relative;">
+            <div style="background-color:black;color: #fff;width: 150px;position: absolute;bottom: 27px;right: 417px;">
+               Hii {{ user.name }} !
+            </div>
+        </div>
             <div class="card">
                 <div class="row g-0">
                     <div class="col-12 col-lg-5 col-xl-3 border-right">
@@ -17,12 +21,13 @@
                         </div>
 
 
-                        <a class="list-group-item list-group-item-action border-0 reciver_id" v-for=" friend in friends"
-                            :key="friend.id">
+                        <a  class="list-group-item list-group-item-action border-0 reciver_id" v-for=" friend in friends"
+                            :key="friend.id"
+                            :style="{ backgroundColor: activeFriend == friend.id  ? 'black' : '', color: activeFriend ? '#fff' : '' }">
                             <div class="badge bg-success float-right">0</div>
                             <div class="d-flex align-items-start">
-                                <!-- <img :src="'Images/' + friend.image" class="rounded-circle mr-1" alt="Vanessa Tucker" -->
-                                <!-- width="40" height="40"> -->
+                                <img :src="'images/' + friend.image" class="rounded-circle mr-1" alt="Vanessa Tucker"
+                                    width="40" height="40">
                                 <div class="flex-grow-1 ml-3 btn" @click="activeFriend = friend.id"
                                     :style="{ color: onlineFriends.find(onlineFriend => onlineFriend.id == friend.id) ? 'green' : 'red' }">
                                     {{ friend.name }}
@@ -40,8 +45,8 @@
                         <div class="py-2 px-4 border-bottom d-none d-lg-block">
                             <div class="d-flex align-items-center py-1">
                                 <div class="position-relative">
-                                    <!-- <img :src="'Images/' + activeFriend.image" v-if="activeFriend"
-                                        class="rounded-circle mr-1" alt="Sharon Lessman" width="40" height="40"> -->
+                                    <img :src="'images/' + selectedUser.image" v-if="selectedUser.image"
+                                        class="rounded-circle mr-1" :alt="selectedUser.name" width="40" height="40">
                                 </div>
                                 <div class="flex-grow-1 pl-3">
                                     <strong v-if="typingFriend.name">{{ activeFriend.name }}</strong>
@@ -103,6 +108,7 @@ export default {
             onlineFriends: [],
             activeFriend: null,
             typingFriend: {},
+            selectedUser: {},
 
 
         }
@@ -125,6 +131,7 @@ export default {
     },
     watch: {
         activeFriend(val) {
+            Echo.leave(`PrivateChat.${this.activeFriend}`);
             this.fetchMessage();
         }
 
@@ -156,6 +163,9 @@ export default {
         },
         fetchMessage() {
             axios.get(`/messages/${this.activeFriend}`).then(response => {
+
+                const foundUserIndex = this.friends.findIndex(user => user.id === this.activeFriend);
+                this.selectedUser = this.friends[foundUserIndex];
                 this.allmessages = response.data.messages;
 
             });
@@ -166,6 +176,7 @@ export default {
                 this.users = response.data.users;
                 if (this.$route.params.id != undefined || this.$route.params.id != null) {
                     const foundUserIndex = this.friends.findIndex(user => user.id === this.$route.params.id);
+                    this.selectedUser = this.friends[foundUserIndex];
                     this.activeFriend = this.friends[foundUserIndex].id;
 
 
@@ -194,11 +205,13 @@ export default {
             .error((error) => {
                 console.error(error);
             });
+        Echo.leave(`PrivateChat.${this.user.id}`);
         Echo.private('PrivateChat.' + this.user.id)
 
             .listen('PrivateMessageSent', (e) => {
-                this.activeFriend = e.message.user_id;
-                this.allmessages.push(e.message);
+                if(e.message.receiver == this.user_id){
+                    this.allmessages.push(e.message);
+                }
                 setTimeout(this.scrollToEnd, 100);
             })
             .listenForWhisper('typing', (e) => {
@@ -221,3 +234,6 @@ export default {
 
 }
 </script>
+<style scoped>
+
+</style>

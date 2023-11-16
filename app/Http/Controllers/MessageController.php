@@ -35,7 +35,7 @@ class MessageController extends Controller
 
     public function getusers()
     {
-        $users = User::get();
+        $users = User::where('id','!=',Auth::id())->get();
         return response(['users' => $users]);
     }
 
