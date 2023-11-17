@@ -55,4 +55,15 @@ class User extends Authenticatable
     {
         return $this->conversations()->find($conversation->id)->pivot->read_at;
     }
+
+    public function blocks()
+    {
+        return $this->hasMany(Block::class, 'user_id');
+    }
+
+    public function blockedBy()
+    {
+        return $this->hasMany(Block::class, 'blocked_user_id');
+    }
+
 }

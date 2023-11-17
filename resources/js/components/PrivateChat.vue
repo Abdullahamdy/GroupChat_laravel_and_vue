@@ -44,9 +44,13 @@
 
                         <div class="py-2 px-4 border-bottom d-none d-lg-block">
                             <div class="d-flex align-items-center py-1">
+                                <div  class="block-div" v-if="activeFriend">
+                                    <button class="btn btn-danger" @click="BlockOrNot()">{{ !isBlock  ? 'Block' : 'UnBlock'}}</button>
+                                </div>
                                 <div class="position-relative">
                                     <img :src="'images/' + selectedUser.image" v-if="selectedUser.image"
                                         class="rounded-circle mr-1" :alt="selectedUser.name" width="40" height="40">
+
                                 </div>
                                 <div class="flex-grow-1 pl-3">
                                     <strong v-if="typingFriend.name">{{ activeFriend.name }}</strong>
@@ -78,13 +82,16 @@
                             </div>
                         </div>
                         <div class="flex-grow-0 py-3 px-4 border-top">
-                            <div class="input-group">
+                            <div class="input-group" v-if="activeFriend && !isBlock">
                                 <input type="text" id='chatMessage' :disabled="!activeFriend" class="form-control"
                                     v-model="message"
                                     :placeholder="(activeFriend ? 'Type your message' : 'Please Select Friend')"
                                     @keydown="onTyping">
                                 <button class="btn btn-primary" id="sendMessage" @click="sendMessage()">Send</button>
 
+                            </div>
+                            <div v-if="userBlocked != null  && activeFriend && isBlock" class="flex-grow-0 py-3 px-4 border-top hidden-text text-center">
+                                <p>This is Person Not Avaliable Now... !</p>
                             </div>
                         </div>
 
@@ -109,6 +116,8 @@ export default {
             activeFriend: null,
             typingFriend: {},
             selectedUser: {},
+            isBlock:null,
+            userBlocked:{},
 
 
         }
@@ -150,6 +159,18 @@ export default {
 
 
         },
+        BlockOrNot(){
+            axios.post(`/block-user/${this.activeFriend}`).then(res => {
+                this.isBlock = res.data.isBlock;
+                this.userBlocked = res.data.blockFriend
+                console.log('thie is blocke is' +this.isBlock)
+                console.log('thie is userBlocked is' +this.userBlocked)
+
+            }).catch((err)=>{
+            })
+        },
+
+
         sendMessage() {
             if (!this.message) {
                 return alert('please Enter Message');
@@ -167,6 +188,10 @@ export default {
                 const foundUserIndex = this.friends.findIndex(user => user.id === this.activeFriend);
                 this.selectedUser = this.friends[foundUserIndex];
                 this.allmessages = response.data.messages;
+                this.isBlock = response.data.isBlock.isBlock;
+                this.userBlocked = response.data.isBlock.blockFriend
+                console.log(this.userBlocked);
+                console.log(this.isBlock);
 
             });
 
@@ -203,7 +228,6 @@ export default {
                 this.onlineFriends.splice(this.onlineFriends.indexOf(user), 1)
             })
             .error((error) => {
-                console.error(error);
             });
         Echo.leave(`PrivateChat.${this.user.id}`);
         Echo.private('PrivateChat.' + this.user.id)
@@ -235,5 +259,11 @@ export default {
 }
 </script>
 <style scoped>
-
+.block-div{
+    position: absolute; top: 16px; right: 50px;
+}
+.hidden-text {
+    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);
+    color: transparent;
+}
 </style>

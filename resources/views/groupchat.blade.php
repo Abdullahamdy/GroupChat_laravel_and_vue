@@ -44,10 +44,19 @@
         margin-right: 10px;
 
     }
+    .logoutbtn{
+        float: right;
+        margin-right: 50px;
+         background-color: black;
+          color: white;
+    }
+
+
 </style>
 
 <body>
     <div id="app">
+
         <div class="main-content">
             <div class="router-center">
                 <div>
@@ -62,6 +71,10 @@
 
 
         <router-view></router-view>
+    </div>
+
+    <div>
+        <a href="{{ route('/logout') }}" class="btn btn-success logoutbtn" style="">Logout</a>
     </div>
 </body>
 <script>

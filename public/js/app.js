@@ -5424,9 +5424,7 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       var _this = this;
       axios.get('/get-users').then(function (res) {
         _this.users = res.data.users;
-      }).then(function (err) {
-        console.log(err);
-      });
+      }).then(function (err) {});
     },
     openFilePicker: function openFilePicker() {
       this.$refs.attachmentInput.click();
@@ -5447,7 +5445,6 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       } else if (this.clickCount === 2) {
         this.stopRecording();
       }
-      console.log(this.clickCount);
     },
     startRecording: function startRecording() {
       var _this2 = this;
@@ -5654,7 +5651,6 @@ function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input ==
       }
     });
     Echo.channel('pushtosidebar').listen('PushToSideBar', function (e) {
-      console.log(e.conversation.id);
       var paragraphElement = document.querySelector("p[id=\"".concat(e.conversation.id, "\"]"));
       var justNow = document.querySelector("p[id=\"just_now".concat(e.conversation.id, "\"]"));
       var spanElement = document.querySelector("span[id=\"".concat(e.conversation.id, "\"]"));
@@ -5698,7 +5694,9 @@ __webpack_require__.r(__webpack_exports__);
       onlineFriends: [],
       activeFriend: null,
       typingFriend: {},
-      selectedUser: {}
+      selectedUser: {},
+      isBlock: null,
+      userBlocked: {}
     };
   },
   computed: {
@@ -5724,39 +5722,52 @@ __webpack_require__.r(__webpack_exports__);
         user: this.user
       });
     },
-    sendMessage: function sendMessage() {
+    BlockOrNot: function BlockOrNot() {
       var _this2 = this;
+      axios.post("/block-user/".concat(this.activeFriend)).then(function (res) {
+        _this2.isBlock = res.data.isBlock;
+        _this2.userBlocked = res.data.blockFriend;
+        console.log('thie is blocke is' + _this2.isBlock);
+        console.log('thie is userBlocked is' + _this2.userBlocked);
+      })["catch"](function (err) {});
+    },
+    sendMessage: function sendMessage() {
+      var _this3 = this;
       if (!this.message) {
         return alert('please Enter Message');
       }
       axios.post("/private-message/".concat(this.activeFriend), {
         'message': this.message
       }).then(function (response) {
-        _this2.message = null;
-        _this2.allmessages.push(response.data.message);
-        setTimeout(_this2.scrollToEnd, 100);
+        _this3.message = null;
+        _this3.allmessages.push(response.data.message);
+        setTimeout(_this3.scrollToEnd, 100);
       });
     },
     fetchMessage: function fetchMessage() {
-      var _this3 = this;
+      var _this4 = this;
       axios.get("/messages/".concat(this.activeFriend)).then(function (response) {
-        var foundUserIndex = _this3.friends.findIndex(function (user) {
-          return user.id === _this3.activeFriend;
+        var foundUserIndex = _this4.friends.findIndex(function (user) {
+          return user.id === _this4.activeFriend;
         });
-        _this3.selectedUser = _this3.friends[foundUserIndex];
-        _this3.allmessages = response.data.messages;
+        _this4.selectedUser = _this4.friends[foundUserIndex];
+        _this4.allmessages = response.data.messages;
+        _this4.isBlock = response.data.isBlock.isBlock;
+        _this4.userBlocked = response.data.isBlock.blockFriend;
+        console.log(_this4.userBlocked);
+        console.log(_this4.isBlock);
       });
     },
     fetchUsers: function fetchUsers() {
-      var _this4 = this;
+      var _this5 = this;
       axios.get('/get-users').then(function (response) {
-        _this4.users = response.data.users;
-        if (_this4.$route.params.id != undefined || _this4.$route.params.id != null) {
-          var foundUserIndex = _this4.friends.findIndex(function (user) {
-            return user.id === _this4.$route.params.id;
+        _this5.users = response.data.users;
+        if (_this5.$route.params.id != undefined || _this5.$route.params.id != null) {
+          var foundUserIndex = _this5.friends.findIndex(function (user) {
+            return user.id === _this5.$route.params.id;
           });
-          _this4.selectedUser = _this4.friends[foundUserIndex];
-          _this4.activeFriend = _this4.friends[foundUserIndex].id;
+          _this5.selectedUser = _this5.friends[foundUserIndex];
+          _this5.activeFriend = _this5.friends[foundUserIndex].id;
         }
       });
     },
@@ -5765,30 +5776,28 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   created: function created() {
-    var _this5 = this;
+    var _this6 = this;
     this.user = window.authUser;
     this.fetchUsers();
     Echo.join("plchat").here(function (users) {
-      _this5.onlineFriends = users;
+      _this6.onlineFriends = users;
     }).joining(function (user) {
-      _this5.onlineFriends.push(user);
+      _this6.onlineFriends.push(user);
     }).leaving(function (user) {
-      _this5.onlineFriends.splice(_this5.onlineFriends.indexOf(user), 1);
-    }).error(function (error) {
-      console.error(error);
-    });
+      _this6.onlineFriends.splice(_this6.onlineFriends.indexOf(user), 1);
+    }).error(function (error) {});
     Echo.leave("PrivateChat.".concat(this.user.id));
     Echo["private"]('PrivateChat.' + this.user.id).listen('PrivateMessageSent', function (e) {
-      if (e.message.receiver == _this5.user_id) {
-        _this5.allmessages.push(e.message);
+      if (e.message.receiver == _this6.user_id) {
+        _this6.allmessages.push(e.message);
       }
-      setTimeout(_this5.scrollToEnd, 100);
+      setTimeout(_this6.scrollToEnd, 100);
     }).listenForWhisper('typing', function (e) {
-      if (e.user.id == _this5.activeFriend) {
-        _this5.typingFriend = e.user;
-        if (_this5.typingClock) clearTimeout();
-        _this5.typingClock = setTimeout(function () {
-          _this5.typingFriend = {};
+      if (e.user.id == _this6.activeFriend) {
+        _this6.typingFriend = e.user;
+        if (_this6.typingClock) clearTimeout();
+        _this6.typingClock = setTimeout(function () {
+          _this6.typingFriend = {};
         }, 9000);
       }
     });
@@ -6016,7 +6025,7 @@ var render = function render() {
       attrs: {
         id: group.id
       }
-    }) : _vm._e()])]), _vm._v(" "), _c("span", {
+    }) : _vm._e()])]), _vm._v(" "), group.user_id == _vm.user.id ? _c("span", {
       on: {
         click: function click($event) {
           return _vm.deleteGroup(group);
@@ -6039,7 +6048,7 @@ var render = function render() {
       attrs: {
         d: "M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"
       }
-    })])])]);
+    })])]) : _vm._e()]);
   }), 0)])]), _vm._v(" "), _c("div", {
     staticClass: "col-md-6 col-lg-5 mt-4",
     staticStyle: {
@@ -6446,7 +6455,16 @@ var render = function render() {
     staticClass: "py-2 px-4 border-bottom d-none d-lg-block"
   }, [_c("div", {
     staticClass: "d-flex align-items-center py-1"
-  }, [_c("div", {
+  }, [_vm.activeFriend ? _c("div", {
+    staticClass: "block-div"
+  }, [_c("button", {
+    staticClass: "btn btn-danger",
+    on: {
+      click: function click($event) {
+        return _vm.BlockOrNot();
+      }
+    }
+  }, [_vm._v(_vm._s(!_vm.isBlock ? "Block" : "UnBlock"))])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "position-relative"
   }, [_vm.selectedUser.image ? _c("img", {
     staticClass: "rounded-circle mr-1",
@@ -6477,7 +6495,7 @@ var render = function render() {
     }, [_vm._v(_vm._s(m.user.name))]), _vm._v("\n                                    " + _vm._s(m.body) + "\n                                ")])]);
   }), _vm._v(" "), _c("br")], 2)]), _vm._v(" "), _c("div", {
     staticClass: "flex-grow-0 py-3 px-4 border-top"
-  }, [_c("div", {
+  }, [_vm.activeFriend && !_vm.isBlock ? _c("div", {
     staticClass: "input-group"
   }, [_c("input", {
     directives: [{
@@ -6513,7 +6531,9 @@ var render = function render() {
         return _vm.sendMessage();
       }
     }
-  }, [_vm._v("Send")])])])])])])])]);
+  }, [_vm._v("Send")])]) : _vm._e(), _vm._v(" "), _vm.userBlocked != null && _vm.activeFriend && _vm.isBlock ? _c("div", {
+    staticClass: "flex-grow-0 py-3 px-4 border-top hidden-text text-center"
+  }, [_c("p", [_vm._v("This is Person Not Avaliable Now... !")])]) : _vm._e()])])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -13539,6 +13559,30 @@ ___CSS_LOADER_EXPORT___.push([module.id, "\n.error[data-v-047f85c8] {\n    color
 
 /***/ }),
 
+/***/ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css":
+/*!**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css ***!
+  \**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../node_modules/laravel-mix/node_modules/css-loader/dist/runtime/api.js */ "./node_modules/laravel-mix/node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0__);
+// Imports
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, "\n.block-div[data-v-237378e0]{\n    position: absolute; top: 16px; right: 50px;\n}\n.hidden-text[data-v-237378e0] {\n    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);\n    color: transparent;\n}\n", ""]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
 /***/ "./node_modules/laravel-mix/node_modules/css-loader/dist/runtime/api.js":
 /*!******************************************************************************!*\
   !*** ./node_modules/laravel-mix/node_modules/css-loader/dist/runtime/api.js ***!
@@ -13642,6 +13686,36 @@ var update = _node_modules_laravel_mix_node_modules_style_loader_dist_runtime_in
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_GroupChat_vue_vue_type_style_index_0_id_047f85c8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+
+/***/ }),
+
+/***/ "./node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css":
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_laravel_mix_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../../node_modules/laravel-mix/node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/laravel-mix/node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_laravel_mix_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_laravel_mix_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_PrivateChat_vue_vue_type_style_index_0_id_237378e0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../../node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css */ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css");
+
+            
+
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = _node_modules_laravel_mix_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_PrivateChat_vue_vue_type_style_index_0_id_237378e0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_PrivateChat_vue_vue_type_style_index_0_id_237378e0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ }),
 
@@ -39382,15 +39456,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _PrivateChat_vue_vue_type_template_id_237378e0_scoped_true__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PrivateChat.vue?vue&type=template&id=237378e0&scoped=true */ "./resources/js/components/PrivateChat.vue?vue&type=template&id=237378e0&scoped=true");
 /* harmony import */ var _PrivateChat_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PrivateChat.vue?vue&type=script&lang=js */ "./resources/js/components/PrivateChat.vue?vue&type=script&lang=js");
-/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* harmony import */ var _PrivateChat_vue_vue_type_style_index_0_id_237378e0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css */ "./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
 
+;
 
 
 /* normalize component */
-;
-var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+
+var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__["default"])(
   _PrivateChat_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"],
   _PrivateChat_vue_vue_type_template_id_237378e0_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render,
   _PrivateChat_vue_vue_type_template_id_237378e0_scoped_true__WEBPACK_IMPORTED_MODULE_0__.staticRenderFns,
@@ -39516,6 +39592,19 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _node_modules_laravel_mix_node_modules_style_loader_dist_cjs_js_node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_GroupChat_vue_vue_type_style_index_0_id_047f85c8_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!../../../node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./GroupChat.vue?vue&type=style&index=0&id=047f85c8&scoped=true&lang=css */ "./node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/GroupChat.vue?vue&type=style&index=0&id=047f85c8&scoped=true&lang=css");
+
+
+/***/ }),
+
+/***/ "./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css":
+/*!*********************************************************************************************************!*\
+  !*** ./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css ***!
+  \*********************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _node_modules_laravel_mix_node_modules_style_loader_dist_cjs_js_node_modules_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_9_use_1_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_dist_cjs_js_clonedRuleSet_9_use_2_node_modules_vue_loader_lib_index_js_vue_loader_options_PrivateChat_vue_vue_type_style_index_0_id_237378e0_scoped_true_lang_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!../../../node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!../../../node_modules/vue-loader/lib/loaders/stylePostLoader.js!../../../node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css */ "./node_modules/laravel-mix/node_modules/style-loader/dist/cjs.js!./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-9.use[1]!./node_modules/vue-loader/lib/loaders/stylePostLoader.js!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-9.use[2]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/PrivateChat.vue?vue&type=style&index=0&id=237378e0&scoped=true&lang=css");
 
 
 /***/ }),

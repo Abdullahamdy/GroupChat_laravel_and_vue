@@ -106,6 +106,7 @@ class GroupChatController extends Controller
     }
     public function deleteGroup(Request $request)
     {
+      
         $Conversation =  Conversation::find($request->groupId);
         $conversationName = $Conversation->name;
         $Conversation->delete();

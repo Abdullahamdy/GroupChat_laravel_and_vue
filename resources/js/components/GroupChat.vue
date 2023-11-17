@@ -64,7 +64,7 @@
                                                     class="circle-icon"></span>
                                             </div>
                                         </a>
-                                        <span @click="deleteGroup(group)">
+                                        <span @click="deleteGroup(group)" v-if="group.user_id == user.id">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                 fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                                 <path
@@ -271,7 +271,6 @@ export default {
             axios.get('/get-users').then((res) => {
                 this.users = res.data.users;
             }).then((err) => {
-                console.log(err);
             })
 
         },
@@ -296,7 +295,6 @@ export default {
             } else if (this.clickCount === 2) {
                 this.stopRecording();
             }
-            console.log(this.clickCount)
         },
         startRecording() {
             console.log('start')
@@ -516,7 +514,6 @@ export default {
         });
         Echo.channel('pushtosidebar')
             .listen('PushToSideBar', (e) => {
-                console.log(e.conversation.id)
                 const paragraphElement = document.querySelector(`p[id="${e.conversation.id}"]`);
                 const justNow = document.querySelector(`p[id="just_now${e.conversation.id}"]`);
                 const spanElement = document.querySelector(`span[id="${e.conversation.id}"]`);

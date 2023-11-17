@@ -27,11 +27,15 @@ Route::get('/private', [MessageController::class, 'privateChat']);
 Route::get('/get-users', [MessageController::class, 'getUsers']);
 Route::get('/private-message/{user}', [MessageController::class, 'getUserMessage']);
 Route::post('/private-message/{user}', [MessageController::class, 'sendPrivateMessage']);
+Route::post('/block-user/{user}', [MessageController::class, 'blockUser']);
 // Route::get('/{any}', function () {
 //     return view('groupchat');
 // })->where('any', '.*');
 
-
+Route::get('/logout', function () {
+    Auth::logout();
+    return redirect('/login');
+})->name('/logout');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/groupChat', [GroupChatController::class, 'groupChat'])->name('/groupChat');
