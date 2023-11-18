@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BlockFriend;
 use App\Models\User;
 use App\Models\Block;
 use App\Models\Message;
 use App\Events\MessageSent;
 use Illuminate\Http\Request;
 use App\Events\PrivateMessageSent;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
@@ -40,7 +40,6 @@ class MessageController extends Controller
         return response(['users' => $users]);
     }
 
-
     public function getUserMessage(Request $request, $FriendId)
     {
         $senderId = Auth::id();
@@ -61,51 +60,74 @@ class MessageController extends Controller
 
     public function sendPrivateMessage(Request $request, $id)
     {
-        $input['body'] = $request->message;
-        $input['receiver_id'] = $id;
-        $message =  auth()->user()->messages()->create($input);
-        broadcast(new PrivateMessageSent($message->load('user')))->toOthers();
-        return response(['status' => 'message Send Successfully', 'message' => $message]);
+        $senderId = Auth::id();
+        $FriendId = $id;
+        $userblocked = Block::where(function ($query) use ($FriendId, $senderId) {
+            $query->where('user_id', $FriendId)
+                ->where('blocked_user_id', $senderId);
+        })->orWhere(function ($query) use ($FriendId, $senderId) {
+            $query->where('user_id', $senderId)
+                ->where('blocked_user_id', $FriendId);
+        })->first();
+        if (!$userblocked) {
+            $input['body'] = $request->message;
+            $input['receiver_id'] = $id;
+            $message =  auth()->user()->messages()->create($input);
+            broadcast(new PrivateMessageSent($message->load('user')))->toOthers();
+            return response(['status' => 'message Send Successfully', 'message' => $message]);
+        }
     }
 
     public function blockUser(User $user)
     {
         $isBlock = false;
         $senderId = Auth::id();
+        $blockedData = null;
         $userblocked = Block::where('user_id', $user->id)
             ->where('blocked_user_id', $senderId)
             ->first();
-
         if ($userblocked) {
             $userblocked->delete();
+            $blockedData = 'UnBlocked';
             $isBlock = false;
         } else {
-           $userblocked = Block::create([
+            $blockedrecord = Block::create([
                 'user_id' => $user->id,
                 'blocked_user_id' => $senderId
             ]);
+            $blockedData = $blockedrecord;
+
             $isBlock = true;
         }
-        $userblocked ? $userblocked->user : $userblocked;
+        $userblocked ? $userblocked : $userblocked;
+        $this->blockedUserBroadCast($user, $blockedData);
         return response(['isBlock' => $isBlock, 'blockFriend' => $userblocked]);
     }
-
-
 
     private function checkIsUserBlocked($FriendId)
     {
         $isBlock = false;
         $senderId = Auth::id();
-        $userblocked = Block::where('user_id', $FriendId)
-            ->where('blocked_user_id', $senderId)
-            ->first();
+        $userblocked = Block::where(function ($query) use ($FriendId, $senderId) {
+            $query->where('user_id', $FriendId)
+                ->where('blocked_user_id', $senderId);
+        })->orWhere(function ($query) use ($FriendId, $senderId) {
+            $query->where('user_id', $senderId)
+                ->where('blocked_user_id', $FriendId);
+        })->first();
 
         if ($userblocked) {
             $isBlock = true;
         } else {
             $isBlock = false;
         }
-       $userblocked =  $userblocked ? $userblocked->user : null;
-        return ['isBlock'=>$isBlock,'blockFriend'=>$userblocked];
+        $userblocked =  $userblocked ? $userblocked->user : null;
+        return ['isBlock' => $isBlock, 'blockFriend' => $userblocked];
+    }
+
+
+    private function blockedUserBroadCast($user, $userblocked)
+    {
+        broadcast(new BlockFriend($user->id, $userblocked))->toOthers();
     }
 }

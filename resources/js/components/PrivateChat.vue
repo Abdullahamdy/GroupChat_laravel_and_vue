@@ -4,10 +4,10 @@
 
             <h1 class="h3 mb-3">Messages</h1>
             <div style="text-align: center;position: relative;">
-            <div style="background-color:black;color: #fff;width: 150px;position: absolute;bottom: 27px;right: 417px;">
-               Hii {{ user.name }} !
+                <div style="background-color:black;color: #fff;width: 150px;position: absolute;bottom: 27px;right: 417px;">
+                    Hii {{ user.name }} !
+                </div>
             </div>
-        </div>
             <div class="card">
                 <div class="row g-0">
                     <div class="col-12 col-lg-5 col-xl-3 border-right">
@@ -21,9 +21,9 @@
                         </div>
 
 
-                        <a  class="list-group-item list-group-item-action border-0 reciver_id" v-for=" friend in friends"
+                        <a class="list-group-item list-group-item-action border-0 reciver_id" v-for=" friend in friends"
                             :key="friend.id"
-                            :style="{ backgroundColor: activeFriend == friend.id  ? 'black' : '', color: activeFriend ? '#fff' : '' }">
+                            :style="{ backgroundColor: activeFriend == friend.id ? 'black' : '', color: activeFriend ? '#fff' : '' }">
                             <div class="badge bg-success float-right">0</div>
                             <div class="d-flex align-items-start">
                                 <img :src="'images/' + friend.image" class="rounded-circle mr-1" alt="Vanessa Tucker"
@@ -44,8 +44,9 @@
 
                         <div class="py-2 px-4 border-bottom d-none d-lg-block">
                             <div class="d-flex align-items-center py-1">
-                                <div  class="block-div" v-if="activeFriend">
-                                    <button class="btn btn-danger" @click="BlockOrNot()">{{ !isBlock  ? 'Block' : 'UnBlock'}}</button>
+                                <div class="block-div" v-if="activeFriend">
+                                    <button class="btn btn-danger" @click="BlockOrNot()">{{ !isBlockbutton ? 'Block' :
+                                        'UnBlock' }}</button>
                                 </div>
                                 <div class="position-relative">
                                     <img :src="'images/' + selectedUser.image" v-if="selectedUser.image"
@@ -77,12 +78,19 @@
                                         <div class="font-weight-bold mb-1">{{ m.user.name }}</div>
                                         {{ m.body }}
                                     </div>
+
+
+
                                 </div>
+                                <div v-if="isBlockinput"
+                                class="flex-grow-0 py-3 px-4 border-top hidden-text text-center">
+                                <p>This is Person Not Available Now... !</p>
+                            </div>
                                 <br>
                             </div>
                         </div>
                         <div class="flex-grow-0 py-3 px-4 border-top">
-                            <div class="input-group" v-if="activeFriend && !isBlock">
+                            <div class="input-group" v-if="activeFriend">
                                 <input type="text" id='chatMessage' :disabled="!activeFriend" class="form-control"
                                     v-model="message"
                                     :placeholder="(activeFriend ? 'Type your message' : 'Please Select Friend')"
@@ -90,9 +98,7 @@
                                 <button class="btn btn-primary" id="sendMessage" @click="sendMessage()">Send</button>
 
                             </div>
-                            <div v-if="userBlocked != null  && activeFriend && isBlock" class="flex-grow-0 py-3 px-4 border-top hidden-text text-center">
-                                <p>This is Person Not Avaliable Now... !</p>
-                            </div>
+
                         </div>
 
                     </div>
@@ -116,8 +122,9 @@ export default {
             activeFriend: null,
             typingFriend: {},
             selectedUser: {},
-            isBlock:null,
-            userBlocked:{},
+            isBlockbutton: null,
+            isBlockinput: null,
+            userBlocked: {},
 
 
         }
@@ -159,14 +166,14 @@ export default {
 
 
         },
-        BlockOrNot(){
+        BlockOrNot() {
             axios.post(`/block-user/${this.activeFriend}`).then(res => {
-                this.isBlock = res.data.isBlock;
-                this.userBlocked = res.data.blockFriend
-                console.log('thie is blocke is' +this.isBlock)
-                console.log('thie is userBlocked is' +this.userBlocked)
+                // this.isBlockinput = res.data.isBlock;
+                this.isBlockbutton = res.data.isBlock;
+                this.userBlocked = res.data.blockFriend;
+                // this.isBlockinput = true;
 
-            }).catch((err)=>{
+            }).catch((err) => {
             })
         },
 
@@ -176,8 +183,15 @@ export default {
                 return alert('please Enter Message');
             }
             axios.post(`/private-message/${this.activeFriend}`, { 'message': this.message }).then(response => {
+                console.log(response);
                 this.message = null;
-                this.allmessages.push(response.data.message)
+                if(response.data != ''){
+                    this.isBlockinput = false;
+                    this.allmessages.push(response.data.message)
+                }else{
+
+                    this.isBlockinput = true;
+                }
                 setTimeout(this.scrollToEnd, 100);
 
             });
@@ -188,10 +202,9 @@ export default {
                 const foundUserIndex = this.friends.findIndex(user => user.id === this.activeFriend);
                 this.selectedUser = this.friends[foundUserIndex];
                 this.allmessages = response.data.messages;
-                this.isBlock = response.data.isBlock.isBlock;
+                this.isBlockinput = response.data.isBlock.isBlock;
+                this.isBlockbutton = response.data.isBlock.isBlock;
                 this.userBlocked = response.data.isBlock.blockFriend
-                console.log(this.userBlocked);
-                console.log(this.isBlock);
 
             });
 
@@ -233,7 +246,7 @@ export default {
         Echo.private('PrivateChat.' + this.user.id)
 
             .listen('PrivateMessageSent', (e) => {
-                if(e.message.receiver == this.user_id){
+                if (e.message.receiver == this.user_id) {
                     this.allmessages.push(e.message);
                 }
                 setTimeout(this.scrollToEnd, 100);
@@ -250,6 +263,17 @@ export default {
                 }
 
             })
+        Echo.private('PrivatesendBlock.' + this.user.id)
+            .listen('BlockFriend', (e) => {
+                if (e.userblocked == 'UnBlocked') {
+                    this.isBlockinput = false;
+                } else {
+                    this.isBlockinput = true;
+                }
+
+            })
+
+
     },
 
 
@@ -259,9 +283,12 @@ export default {
 }
 </script>
 <style scoped>
-.block-div{
-    position: absolute; top: 16px; right: 50px;
+.block-div {
+    position: absolute;
+    top: 16px;
+    right: 50px;
 }
+
 .hidden-text {
     text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);
     color: transparent;

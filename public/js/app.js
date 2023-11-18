@@ -5695,7 +5695,8 @@ __webpack_require__.r(__webpack_exports__);
       activeFriend: null,
       typingFriend: {},
       selectedUser: {},
-      isBlock: null,
+      isBlockbutton: null,
+      isBlockinput: null,
       userBlocked: {}
     };
   },
@@ -5725,10 +5726,10 @@ __webpack_require__.r(__webpack_exports__);
     BlockOrNot: function BlockOrNot() {
       var _this2 = this;
       axios.post("/block-user/".concat(this.activeFriend)).then(function (res) {
-        _this2.isBlock = res.data.isBlock;
+        // this.isBlockinput = res.data.isBlock;
+        _this2.isBlockbutton = res.data.isBlock;
         _this2.userBlocked = res.data.blockFriend;
-        console.log('thie is blocke is' + _this2.isBlock);
-        console.log('thie is userBlocked is' + _this2.userBlocked);
+        // this.isBlockinput = true;
       })["catch"](function (err) {});
     },
     sendMessage: function sendMessage() {
@@ -5739,8 +5740,14 @@ __webpack_require__.r(__webpack_exports__);
       axios.post("/private-message/".concat(this.activeFriend), {
         'message': this.message
       }).then(function (response) {
+        console.log(response);
         _this3.message = null;
-        _this3.allmessages.push(response.data.message);
+        if (response.data != '') {
+          _this3.isBlockinput = false;
+          _this3.allmessages.push(response.data.message);
+        } else {
+          _this3.isBlockinput = true;
+        }
         setTimeout(_this3.scrollToEnd, 100);
       });
     },
@@ -5752,10 +5759,9 @@ __webpack_require__.r(__webpack_exports__);
         });
         _this4.selectedUser = _this4.friends[foundUserIndex];
         _this4.allmessages = response.data.messages;
-        _this4.isBlock = response.data.isBlock.isBlock;
+        _this4.isBlockinput = response.data.isBlock.isBlock;
+        _this4.isBlockbutton = response.data.isBlock.isBlock;
         _this4.userBlocked = response.data.isBlock.blockFriend;
-        console.log(_this4.userBlocked);
-        console.log(_this4.isBlock);
       });
     },
     fetchUsers: function fetchUsers() {
@@ -5799,6 +5805,13 @@ __webpack_require__.r(__webpack_exports__);
         _this6.typingClock = setTimeout(function () {
           _this6.typingFriend = {};
         }, 9000);
+      }
+    });
+    Echo["private"]('PrivatesendBlock.' + this.user.id).listen('BlockFriend', function (e) {
+      if (e.userblocked == 'UnBlocked') {
+        _this6.isBlockinput = false;
+      } else {
+        _this6.isBlockinput = true;
       }
     });
   }
@@ -6402,7 +6415,7 @@ var render = function render() {
       bottom: "27px",
       right: "417px"
     }
-  }, [_vm._v("\n           Hii " + _vm._s(_vm.user.name) + " !\n        ")])]), _vm._v(" "), _c("div", {
+  }, [_vm._v("\n                Hii " + _vm._s(_vm.user.name) + " !\n            ")])]), _vm._v(" "), _c("div", {
     staticClass: "card"
   }, [_c("div", {
     staticClass: "row g-0"
@@ -6464,7 +6477,7 @@ var render = function render() {
         return _vm.BlockOrNot();
       }
     }
-  }, [_vm._v(_vm._s(!_vm.isBlock ? "Block" : "UnBlock"))])]) : _vm._e(), _vm._v(" "), _c("div", {
+  }, [_vm._v(_vm._s(!_vm.isBlockbutton ? "Block" : "UnBlock"))])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "position-relative"
   }, [_vm.selectedUser.image ? _c("img", {
     staticClass: "rounded-circle mr-1",
@@ -6493,9 +6506,11 @@ var render = function render() {
     }, [_c("div", {
       staticClass: "font-weight-bold mb-1"
     }, [_vm._v(_vm._s(m.user.name))]), _vm._v("\n                                    " + _vm._s(m.body) + "\n                                ")])]);
-  }), _vm._v(" "), _c("br")], 2)]), _vm._v(" "), _c("div", {
+  }), _vm._v(" "), _vm.isBlockinput ? _c("div", {
+    staticClass: "flex-grow-0 py-3 px-4 border-top hidden-text text-center"
+  }, [_c("p", [_vm._v("This is Person Not Available Now... !")])]) : _vm._e(), _vm._v(" "), _c("br")], 2)]), _vm._v(" "), _c("div", {
     staticClass: "flex-grow-0 py-3 px-4 border-top"
-  }, [_vm.activeFriend && !_vm.isBlock ? _c("div", {
+  }, [_vm.activeFriend ? _c("div", {
     staticClass: "input-group"
   }, [_c("input", {
     directives: [{
@@ -6531,9 +6546,7 @@ var render = function render() {
         return _vm.sendMessage();
       }
     }
-  }, [_vm._v("Send")])]) : _vm._e(), _vm._v(" "), _vm.userBlocked != null && _vm.activeFriend && _vm.isBlock ? _c("div", {
-    staticClass: "flex-grow-0 py-3 px-4 border-top hidden-text text-center"
-  }, [_c("p", [_vm._v("This is Person Not Avaliable Now... !")])]) : _vm._e()])])])])])]);
+  }, [_vm._v("Send")])]) : _vm._e()])])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -13576,7 +13589,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.block-div[data-v-237378e0]{\n    position: absolute; top: 16px; right: 50px;\n}\n.hidden-text[data-v-237378e0] {\n    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);\n    color: transparent;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.block-div[data-v-237378e0] {\n    position: absolute;\n    top: 16px;\n    right: 50px;\n}\n.hidden-text[data-v-237378e0] {\n    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);\n    color: transparent;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

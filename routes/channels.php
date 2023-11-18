@@ -28,6 +28,9 @@ Broadcast::channel('pushtosidebar', function ($user) {
 Broadcast::channel('PrivateChat.{receiverid}', function ($user, $receiverid) {
     return auth()->check();
 });
+Broadcast::channel('PrivatesendBlock.{receiverid}', function ($user, $receiverid) {
+    return true;
+});
 // Broadcast::channel('PrivateGroupChat.{conversationId}', function ($user,$conversationId) {
 //     return auth()->check() ;
 // });
