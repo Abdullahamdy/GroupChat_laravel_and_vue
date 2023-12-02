@@ -72,6 +72,10 @@ class MessageController extends Controller
         if (!$userblocked) {
             $input['body'] = $request->message;
             $input['receiver_id'] = $id;
+            if ($request->hasFile('image')) {
+                $message = new Message();
+                $input['attachment'] = $message->uploadAndSaveImage($request->image);
+            }
             $message =  auth()->user()->messages()->create($input);
             broadcast(new PrivateMessageSent($message->load('user')))->toOthers();
             return response(['status' => 'message Send Successfully', 'message' => $message]);

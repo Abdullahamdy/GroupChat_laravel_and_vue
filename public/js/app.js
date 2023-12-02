@@ -5697,7 +5697,9 @@ __webpack_require__.r(__webpack_exports__);
       selectedUser: {},
       isBlockbutton: null,
       isBlockinput: null,
-      userBlocked: {}
+      userBlocked: {},
+      url: false,
+      attachment: ''
     };
   },
   computed: {
@@ -5706,6 +5708,9 @@ __webpack_require__.r(__webpack_exports__);
       return this.users.filter(function (user) {
         return user.id !== _this.user.id;
       });
+    },
+    isButtonDisabled: function isButtonDisabled() {
+      return !(this.message || this.url);
     }
   },
   mounted: function mounted() {
@@ -5723,6 +5728,15 @@ __webpack_require__.r(__webpack_exports__);
         user: this.user
       });
     },
+    openFilePicker: function openFilePicker() {
+      this.$refs.attachmentInput.click();
+    },
+    handleFileSelection: function handleFileSelection(e) {
+      var file = e.target.files[0];
+      this.attachment = file;
+      this.url = URL.createObjectURL(file);
+      URL.revokeObjectURL(file);
+    },
     BlockOrNot: function BlockOrNot() {
       var _this2 = this;
       axios.post("/block-user/".concat(this.activeFriend)).then(function (res) {
@@ -5734,11 +5748,12 @@ __webpack_require__.r(__webpack_exports__);
     },
     sendMessage: function sendMessage() {
       var _this3 = this;
-      if (!this.message) {
-        return alert('please Enter Message');
-      }
-      axios.post("/private-message/".concat(this.activeFriend), {
-        'message': this.message
+      var formData = new FormData();
+      formData.append('image', this.attachment);
+      formData.append('message', this.message), axios.post("/private-message/".concat(this.activeFriend), formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }).then(function (response) {
         console.log(response);
         _this3.message = null;
@@ -5748,6 +5763,8 @@ __webpack_require__.r(__webpack_exports__);
         } else {
           _this3.isBlockinput = true;
         }
+        _this3.url = false;
+        _this3.attachment = false;
         setTimeout(_this3.scrollToEnd, 100);
       });
     },
@@ -6401,7 +6418,7 @@ var render = function render() {
     staticClass: "container p-0"
   }, [_c("h1", {
     staticClass: "h3 mb-3"
-  }, [_vm._v("Messages")]), _vm._v(" "), _c("div", {
+  }, [_vm._v("Friends")]), _vm._v(" "), _c("div", {
     staticStyle: {
       "text-align": "center",
       position: "relative"
@@ -6505,7 +6522,22 @@ var render = function render() {
       staticClass: "flex-shrinv-1 bg-light rounded py-2 px-3 mr-3"
     }, [_c("div", {
       staticClass: "font-weight-bold mb-1"
-    }, [_vm._v(_vm._s(m.user.name))]), _vm._v("\n                                    " + _vm._s(m.body) + "\n                                ")])]);
+    }, [_vm._v(_vm._s(m.user.name))]), _vm._v(" "), m.body != "null" ? _c("div", [_vm._v("\n                                        " + _vm._s(m.body) + "\n                                    ")]) : _vm._e(), _vm._v(" "), m.attachment ? _c("div", {
+      staticClass: "image-container rounded",
+      staticStyle: {
+        width: "200px",
+        height: "60px",
+        overflow: "hidden"
+      }
+    }, [_c("img", {
+      staticStyle: {
+        width: "100%"
+      },
+      attrs: {
+        src: m.attachment,
+        alt: ""
+      }
+    })]) : _vm._e()])]);
   }), _vm._v(" "), _vm.isBlockinput ? _c("div", {
     staticClass: "flex-grow-0 py-3 px-4 border-top hidden-text text-center"
   }, [_c("p", [_vm._v("This is Person Not Available Now... !")])]) : _vm._e(), _vm._v(" "), _c("br")], 2)]), _vm._v(" "), _c("div", {
@@ -6513,6 +6545,18 @@ var render = function render() {
   }, [_vm.activeFriend ? _c("div", {
     staticClass: "input-group"
   }, [_c("input", {
+    ref: "attachmentInput",
+    staticStyle: {
+      display: "none"
+    },
+    attrs: {
+      type: "file",
+      id: "attachment-input"
+    },
+    on: {
+      input: _vm.handleFileSelection
+    }
+  }), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -6536,9 +6580,15 @@ var render = function render() {
         _vm.message = $event.target.value;
       }
     }
+  }), _vm._v(" "), _c("i", {
+    staticClass: "attachment-icon fas fa-paperclip",
+    on: {
+      click: _vm.openFilePicker
+    }
   }), _vm._v(" "), _c("button", {
     staticClass: "btn btn-primary",
     attrs: {
+      disabled: _vm.isButtonDisabled,
       id: "sendMessage"
     },
     on: {
@@ -6546,7 +6596,30 @@ var render = function render() {
         return _vm.sendMessage();
       }
     }
-  }, [_vm._v("Send")])]) : _vm._e()])])])])])]);
+  }, [_vm._v("Send")])]) : _vm._e()]), _vm._v(" "), _vm.url ? _c("div", {
+    staticStyle: {
+      width: "100px",
+      height: "100px"
+    },
+    attrs: {
+      lass: "image-container"
+    }
+  }, [_c("img", {
+    staticStyle: {
+      width: "100%"
+    },
+    attrs: {
+      src: _vm.url,
+      alt: ""
+    }
+  }), _vm._v(" "), _c("span", {
+    staticClass: "remove-icon",
+    on: {
+      click: function click($event) {
+        _vm.url = false;
+      }
+    }
+  }, [_vm._v("✖")])]) : _vm._e()])])])])]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -13589,7 +13662,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.block-div[data-v-237378e0] {\n    position: absolute;\n    top: 16px;\n    right: 50px;\n}\n.hidden-text[data-v-237378e0] {\n    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);\n    color: transparent;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.block-div[data-v-237378e0] {\n    position: absolute;\n    top: 16px;\n    right: 50px;\n}\n.hidden-text[data-v-237378e0] {\n    text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);\n    color: transparent;\n}\n.attachment-icon[data-v-237378e0] {\n    margin: 10px;\n    font-size: 20px;\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\ImageTrait;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class Message extends Model
 {
     use HasFactory;
+    use ImageTrait;
     protected $guarded = [];
     public function user()
     {
@@ -24,5 +26,5 @@ class Message extends Model
         return $this->belongsTo(Conversation::class);
     }
 
-   
+
 }

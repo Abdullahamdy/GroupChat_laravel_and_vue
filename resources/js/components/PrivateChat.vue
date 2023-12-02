@@ -2,7 +2,7 @@
     <main class="content">
         <div class="container p-0">
 
-            <h1 class="h3 mb-3">Messages</h1>
+            <h1 class="h3 mb-3">Friends</h1>
             <div style="text-align: center;position: relative;">
                 <div style="background-color:black;color: #fff;width: 150px;position: absolute;bottom: 27px;right: 417px;">
                     Hii {{ user.name }} !
@@ -70,37 +70,48 @@
                                 <div v-for="(m, i) in allmessages" :key="i"
                                     :class="(user.id == m.user.id) ? 'chat-message-right mt-2' : 'chat-message-left mt-2'">
                                     <div>
-                                        <!-- <img src="" class="rounded-circle mr-1" alt="Chris Wood" width="40" height="40"> -->
                                         <div class="text-muted small text-nowrap mt-2">{{ m.created_at }}</div>
                                     </div>
 
                                     <div class="flex-shrinv-1 bg-light rounded py-2 px-3 mr-3">
                                         <div class="font-weight-bold mb-1">{{ m.user.name }}</div>
-                                        {{ m.body }}
+                                        <div v-if="m.body != 'null'">
+                                            {{ m.body }}
+                                        </div>
+
+
+                                        <div class="image-container rounded" v-if="m.attachment"
+                                            style="width:200px;height: 60px; overflow: hidden;">
+                                            <img :src="m.attachment" alt="" style="width: 100%;">
+                                        </div>
                                     </div>
-
-
-
                                 </div>
-                                <div v-if="isBlockinput"
-                                class="flex-grow-0 py-3 px-4 border-top hidden-text text-center">
-                                <p>This is Person Not Available Now... !</p>
-                            </div>
+
+                                <div v-if="isBlockinput" class="flex-grow-0 py-3 px-4 border-top hidden-text text-center">
+                                    <p>This is Person Not Available Now... !</p>
+                                </div>
                                 <br>
                             </div>
                         </div>
                         <div class="flex-grow-0 py-3 px-4 border-top">
                             <div class="input-group" v-if="activeFriend">
+                                <input type="file" id="attachment-input" ref="attachmentInput" style="display: none;"
+                                    @input="handleFileSelection">
                                 <input type="text" id='chatMessage' :disabled="!activeFriend" class="form-control"
                                     v-model="message"
                                     :placeholder="(activeFriend ? 'Type your message' : 'Please Select Friend')"
                                     @keydown="onTyping">
-                                <button class="btn btn-primary" id="sendMessage" @click="sendMessage()">Send</button>
+                                <i @click="openFilePicker" class="attachment-icon fas fa-paperclip"></i>
+                                <button :disabled="isButtonDisabled" class="btn btn-primary" id="sendMessage"
+                                    @click="sendMessage()">Send</button>
 
                             </div>
 
                         </div>
-
+                        <div lass="image-container" v-if="url" style="width:100px;height: 100px;">
+                            <img :src="url" alt="" style="width: 100%;">
+                            <span class="remove-icon" @click="url = false">&#10006;</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -125,6 +136,8 @@ export default {
             isBlockbutton: null,
             isBlockinput: null,
             userBlocked: {},
+            url: false,
+            attachment: '',
 
 
         }
@@ -134,7 +147,12 @@ export default {
             return this.users.filter((user) => {
                 return user.id !== this.user.id;
             })
+        },
+        isButtonDisabled() {
+            return !(this.message || this.url);
         }
+
+
 
     },
 
@@ -166,6 +184,15 @@ export default {
 
 
         },
+        openFilePicker() {
+            this.$refs.attachmentInput.click();
+        },
+        handleFileSelection(e) {
+            const file = e.target.files[0];
+            this.attachment = file;
+            this.url = URL.createObjectURL(file);
+            URL.revokeObjectURL(file)
+        },
         BlockOrNot() {
             axios.post(`/block-user/${this.activeFriend}`).then(res => {
                 // this.isBlockinput = res.data.isBlock;
@@ -179,22 +206,31 @@ export default {
 
 
         sendMessage() {
-            if (!this.message) {
-                return alert('please Enter Message');
-            }
-            axios.post(`/private-message/${this.activeFriend}`, { 'message': this.message }).then(response => {
-                console.log(response);
-                this.message = null;
-                if(response.data != ''){
-                    this.isBlockinput = false;
-                    this.allmessages.push(response.data.message)
-                }else{
 
-                    this.isBlockinput = true;
-                }
-                setTimeout(this.scrollToEnd, 100);
+            const formData = new FormData();
+            formData.append('image', this.attachment);
+            formData.append('message', this.message),
+                axios.post(`/private-message/${this.activeFriend}`, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
 
-            });
+
+                }).then(response => {
+                    console.log(response);
+                    this.message = null;
+                    if (response.data != '') {
+                        this.isBlockinput = false;
+                        this.allmessages.push(response.data.message)
+                    } else {
+
+                        this.isBlockinput = true;
+                    }
+                    this.url = false;
+                    this.attachment = false;
+                    setTimeout(this.scrollToEnd, 100);
+
+                });
         },
         fetchMessage() {
             axios.get(`/messages/${this.activeFriend}`).then(response => {
@@ -292,5 +328,10 @@ export default {
 .hidden-text {
     text-shadow: 0 0 2px rgba(0, 0, 0, 1.5);
     color: transparent;
+}
+
+.attachment-icon {
+    margin: 10px;
+    font-size: 20px;
 }
 </style>
